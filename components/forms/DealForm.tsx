@@ -39,8 +39,10 @@ export default function DealForm({ deal, categories, retailers, mode, onSubmit }
   const [originalPrice, setOriginalPrice] = useState(deal ? (deal.originalPrice / 100).toFixed(2) : '');
   const [expirationDate, setExpirationDate] = useState(() => {
     if (!deal?.expirationDate) return '';
-    const timestamp = deal.expirationDate as Timestamp;
-    return timestamp.toDate().toISOString().slice(0, 16);
+    const date = deal.expirationDate instanceof Date 
+      ? deal.expirationDate 
+      : new Date(deal.expirationDate);
+    return date.toISOString().slice(0, 16);
   });
   const [slug, setSlug] = useState(deal?.slug || '');
   const [isActive, setIsActive] = useState(deal?.isActive ?? true);

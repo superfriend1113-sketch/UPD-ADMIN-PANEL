@@ -56,7 +56,9 @@ export default function DealsListClient({ initialDeals, categories, retailers }:
       
       // Expiration filter
       const now = Date.now();
-      const expirationTime = deal.expirationDate.toMillis();
+      const expirationTime = deal.expirationDate instanceof Date 
+        ? deal.expirationDate.getTime() 
+        : new Date(deal.expirationDate).getTime();
       const sevenDaysFromNow = now + (7 * 24 * 60 * 60 * 1000);
       
       if (expirationFilter === 'expired' && expirationTime > now) return false;
@@ -161,7 +163,7 @@ export default function DealsListClient({ initialDeals, categories, retailers }:
   
   // Format date consistently for SSR
   const formatDate = (timestamp: any) => {
-    const d = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    const d = timestamp instanceof Date ? timestamp : new Date(timestamp);
     const day = String(d.getDate()).padStart(2, '0');
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const year = d.getFullYear();
@@ -170,7 +172,9 @@ export default function DealsListClient({ initialDeals, categories, retailers }:
   
   // Check if deal is expired
   const isExpired = (timestamp: any) => {
-    const expirationTime = timestamp.toMillis ? timestamp.toMillis() : new Date(timestamp).getTime();
+    const expirationTime = timestamp instanceof Date 
+      ? timestamp.getTime() 
+      : new Date(timestamp).getTime();
     return expirationTime < Date.now();
   };
   
