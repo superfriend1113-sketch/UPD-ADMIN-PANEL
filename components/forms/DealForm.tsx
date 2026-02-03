@@ -14,8 +14,15 @@ import Button from '../ui/Button';
 import { calculateSavingsPercentage } from '../../lib/utils';
 import type { Deal, Category, Retailer } from '../../lib/types';
 
+// Client-side Deal type with Date objects instead of Timestamps
+type ClientDeal = Omit<Deal, 'expirationDate' | 'createdAt' | 'updatedAt'> & {
+  expirationDate: Date | string;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+};
+
 interface DealFormProps {
-  deal?: Deal;
+  deal?: ClientDeal;
   categories: Category[];
   retailers: Retailer[];
   mode: 'create' | 'edit';

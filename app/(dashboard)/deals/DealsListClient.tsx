@@ -15,15 +15,22 @@ import Toast from '../../../components/ui/Toast';
 import { deleteDeal, toggleDealStatus, bulkUpdateDeals } from '../../../lib/actions/deals';
 import type { Deal, Category, Retailer } from '../../../lib/types';
 
+// Client-side Deal type with Date objects instead of Timestamps
+type ClientDeal = Omit<Deal, 'expirationDate' | 'createdAt' | 'updatedAt'> & {
+  expirationDate: Date | string;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+};
+
 interface DealsListClientProps {
-  initialDeals: Deal[];
+  initialDeals: ClientDeal[];
   categories: Category[];
   retailers: Retailer[];
 }
 
 export default function DealsListClient({ initialDeals, categories, retailers }: DealsListClientProps) {
   const router = useRouter();
-  const [deals, setDeals] = useState(initialDeals);
+  const [deals, setDeals] = useState<ClientDeal[]>(initialDeals);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   
   // Filters
@@ -162,7 +169,7 @@ export default function DealsListClient({ initialDeals, categories, retailers }:
   };
   
   // Format date consistently for SSR
-  const formatDate = (timestamp: any) => {
+  const formatDate = (timestamp: Date | string) => {
     const d = timestamp instanceof Date ? timestamp : new Date(timestamp);
     const day = String(d.getDate()).padStart(2, '0');
     const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -171,7 +178,7 @@ export default function DealsListClient({ initialDeals, categories, retailers }:
   };
   
   // Check if deal is expired
-  const isExpired = (timestamp: any) => {
+  const isExpired = (timestamp: Date | string) => {
     const expirationTime = timestamp instanceof Date 
       ? timestamp.getTime() 
       : new Date(timestamp).getTime();

@@ -7,7 +7,14 @@ import { notFound } from 'next/navigation';
 import { getAdminFirestore } from '../../../../../lib/firebase/adminConfig';
 import { getDeal, updateDeal } from '../../../../../lib/actions/deals';
 import DealForm from '../../../../../components/forms/DealForm';
-import type { Category, Retailer } from '../../../../../lib/types';
+import type { Category, Retailer, Deal } from '../../../../../lib/types';
+
+// Client-side Deal type with Date objects instead of Timestamps
+type ClientDeal = Omit<Deal, 'expirationDate' | 'createdAt' | 'updatedAt'> & {
+  expirationDate: Date | string;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+};
 
 interface EditDealPageProps {
   params: Promise<{ id: string }>;
@@ -85,7 +92,7 @@ export default async function EditDealPage({ params }: EditDealPageProps) {
       </div>
       
       <DealForm
-        deal={deal}
+        deal={deal as unknown as ClientDeal}
         categories={categories}
         retailers={retailers}
         mode="edit"

@@ -16,10 +16,14 @@ async function getDashboardMetrics() {
 
   // Fetch all deals
   const dealsSnapshot = await db.collection('deals').get();
-  const deals = dealsSnapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  }));
+  const deals = dealsSnapshot.docs.map(doc => {
+    const data = doc.data();
+    return {
+      id: doc.id,
+      isActive: data.isActive,
+      expirationDate: data.expirationDate
+    };
+  });
 
   // Calculate metrics
   const totalDeals = deals.length;

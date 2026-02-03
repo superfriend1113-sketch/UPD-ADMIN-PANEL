@@ -6,7 +6,14 @@
 import { getDeals, deleteDeal, toggleDealStatus, bulkUpdateDeals } from '../../../lib/actions/deals';
 import { getAdminFirestore } from '../../../lib/firebase/adminConfig';
 import DealsListClient from './DealsListClient';
-import type { Category, Retailer } from '../../../lib/types';
+import type { Category, Retailer, Deal } from '../../../lib/types';
+
+// Client-side Deal type with Date objects instead of Timestamps
+type ClientDeal = Omit<Deal, 'expirationDate' | 'createdAt' | 'updatedAt'> & {
+  expirationDate: Date | string;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+};
 
 export const dynamic = 'force-dynamic';
 
@@ -64,7 +71,7 @@ export default async function DealsPage() {
       </div>
       
       <DealsListClient
-        initialDeals={deals}
+        initialDeals={deals as unknown as ClientDeal[]}
         categories={categories}
         retailers={retailers}
       />
