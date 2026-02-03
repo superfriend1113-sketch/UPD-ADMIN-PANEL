@@ -9,6 +9,8 @@ import { createDeal } from '../../../../lib/actions/deals';
 import DealForm from '../../../../components/forms/DealForm';
 import type { Category, Retailer } from '../../../../lib/types';
 
+export const dynamic = 'force-dynamic';
+
 export default async function CreateDealPage() {
   // Fetch categories and retailers for form dropdowns
   const db = getAdminFirestore();

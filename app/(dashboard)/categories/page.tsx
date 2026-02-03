@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { getCategories, deleteCategory } from '../../../lib/actions/categories';
 import CategoriesListClient from './CategoriesListClient';
 
+export const dynamic = 'force-dynamic';
+
 export default async function CategoriesPage() {
   const categories = await getCategories();
   

@@ -8,6 +8,8 @@ import { getAdminFirestore } from '../../../lib/firebase/adminConfig';
 import DealsListClient from './DealsListClient';
 import type { Category, Retailer } from '../../../lib/types';
 
+export const dynamic = 'force-dynamic';
+
 export default async function DealsPage() {
   // Fetch deals
   const deals = await getDeals();

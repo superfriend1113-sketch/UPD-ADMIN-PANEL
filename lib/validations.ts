@@ -210,11 +210,6 @@ export function validateRetailer(data: Partial<Retailer>): ValidationResult {
     errors.websiteUrl = 'Website URL must be a valid URL (http:// or https://)';
   }
   
-  // Optional description validation
-  if (data.description && data.description.length > 500) {
-    errors.description = 'Description must be 500 characters or less';
-  }
-  
   return {
     isValid: Object.keys(errors).length === 0,
     errors,

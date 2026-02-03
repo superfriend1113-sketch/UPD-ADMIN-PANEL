@@ -75,9 +75,21 @@ export function validatePrice(price: number): boolean {
  * Validate future date
  * Date must be in the future
  */
-export function validateFutureDate(date: Date | string): boolean {
+export function validateFutureDate(date: Date | string | any): boolean {
   try {
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    let dateObj: Date;
+    
+    // Handle Firestore Timestamp
+    if (date && typeof date === 'object' && 'toMillis' in date) {
+      dateObj = date.toDate();
+    } else if (typeof date === 'string') {
+      dateObj = new Date(date);
+    } else if (date instanceof Date) {
+      dateObj = date;
+    } else {
+      return false;
+    }
+    
     if (isNaN(dateObj.getTime())) return false;
     
     return dateObj.getTime() > Date.now();

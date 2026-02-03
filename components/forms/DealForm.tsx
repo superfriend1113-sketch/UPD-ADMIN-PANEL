@@ -7,6 +7,7 @@
 
 import { useState, useEffect, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { Timestamp } from 'firebase/firestore';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Button from '../ui/Button';
@@ -36,9 +37,11 @@ export default function DealForm({ deal, categories, retailers, mode, onSubmit }
   const [retailer, setRetailer] = useState(deal?.retailer || '');
   const [price, setPrice] = useState(deal ? (deal.price / 100).toFixed(2) : '');
   const [originalPrice, setOriginalPrice] = useState(deal ? (deal.originalPrice / 100).toFixed(2) : '');
-  const [expirationDate, setExpirationDate] = useState(
-    deal?.expirationDate ? new Date(deal.expirationDate).toISOString().slice(0, 16) : ''
-  );
+  const [expirationDate, setExpirationDate] = useState(() => {
+    if (!deal?.expirationDate) return '';
+    const timestamp = deal.expirationDate as Timestamp;
+    return timestamp.toDate().toISOString().slice(0, 16);
+  });
   const [slug, setSlug] = useState(deal?.slug || '');
   const [isActive, setIsActive] = useState(deal?.isActive ?? true);
   const [isFeatured, setIsFeatured] = useState(deal?.isFeatured ?? false);
