@@ -4,7 +4,7 @@
  */
 
 import { redirect } from 'next/navigation';
-import { getAdminFirestore } from '../../../../lib/firebase/adminConfig';
+import { supabaseAdmin } from '../../../../lib/supabase/adminConfig';
 import { createDeal } from '../../../../lib/actions/deals';
 import DealForm from '../../../../components/forms/DealForm';
 import type { Category, Retailer } from '../../../../lib/types';
@@ -13,52 +13,49 @@ export const dynamic = 'force-dynamic';
 
 export default async function CreateDealPage() {
   // Fetch categories and retailers for form dropdowns
-  const db = getAdminFirestore();
+  const { data: categoriesData } = await supabaseAdmin
+    .from('categories')
+    .select('*')
+    .eq('is_active', true)
+    .order('name');
   
-  const categoriesSnapshot = await db.collection('categories')
-    .orderBy('name')
-    .get();
+  const categories: Category[] = (categoriesData || []).map(data => ({
+    id: data.id,
+    name: data.name,
+    slug: data.slug,
+    description: data.description,
+    icon: data.icon,
+    order: data.order,
+    isActive: data.is_active,
+    dealCount: data.deal_count,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
+  }));
   
-  const categories: Category[] = categoriesSnapshot.docs
-    .filter(doc => doc.data().isActive === true)
-    .map(doc => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        name: data.name,
-        slug: data.slug,
-        description: data.description,
-        icon: data.icon,
-        order: data.order,
-        isActive: data.isActive,
-        dealCount: data.dealCount,
-        createdAt: data.createdAt?.toDate(),
-        updatedAt: data.updatedAt?.toDate(),
-      };
-    }) as Category[];
+  const { data: retailersData } = await supabaseAdmin
+    .from('retailers')
+    .select('*')
+    .eq('is_active', true)
+    .order('name');
   
-  const retailersSnapshot = await db.collection('retailers')
-    .orderBy('name')
-    .get();
-  
-  const retailers: Retailer[] = retailersSnapshot.docs
-    .filter(doc => doc.data().isActive === true)
-    .map(doc => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        name: data.name,
-        slug: data.slug,
-        logoUrl: data.logoUrl,
-        websiteUrl: data.websiteUrl,
-        affiliateId: data.affiliateId,
-        isActive: data.isActive,
-        dealCount: data.dealCount,
-        commission: data.commission,
-        createdAt: data.createdAt?.toDate(),
-        updatedAt: data.updatedAt?.toDate(),
-      };
-    }) as Retailer[];
+  const retailers: Retailer[] = (retailersData || []).map(data => ({
+    id: data.id,
+    name: data.name,
+    slug: data.slug,
+    logoUrl: data.logo_url,
+    websiteUrl: data.website_url,
+    affiliateId: data.affiliate_id,
+    isActive: data.is_active,
+    dealCount: data.deal_count,
+    commission: data.commission?.toString() || '0',
+    userId: data.user_id,
+    status: data.status || 'approved',
+    approvedAt: data.approved_at,
+    approvedBy: data.approved_by,
+    rejectionReason: data.rejection_reason,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
+  }));
   
   // Check if we have categories and retailers
   if (categories.length === 0 || retailers.length === 0) {

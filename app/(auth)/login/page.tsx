@@ -7,8 +7,7 @@
 
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { getAuthInstance } from '@/lib/firebase/clientConfig';
+import { supabase } from '@/lib/supabase/clientConfig';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -23,25 +22,43 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const auth = getAuthInstance();
-      await signInWithEmailAndPassword(auth, email, password);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
       
-      // Redirect to dashboard after successful login
-      router.push('/');
+      if (error) throw error;
+      
+      // Wait for session cookie to be created
+      if (data.session) {
+        await fetch('/api/auth/session', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            accessToken: data.session.access_token,
+            refreshToken: data.session.refresh_token,
+          }),
+        });
+      }
+      
+      // Small delay to ensure cookies are set
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Force a hard navigation to ensure server sees the session
+      window.location.href = '/';
     } catch (err: any) {
       console.error('Login error:', err);
       
-      // Handle specific Firebase auth errors
-      if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password') {
+      // Handle specific Supabase auth errors
+      if (err.message?.includes('Invalid login credentials')) {
         setError('Invalid email or password');
-      } else if (err.code === 'auth/user-not-found') {
-        setError('No account found with this email');
-      } else if (err.code === 'auth/too-many-requests') {
-        setError('Too many failed attempts. Please try again later');
+      } else if (err.message?.includes('Email not confirmed')) {
+        setError('Please confirm your email address');
       } else {
         setError('Failed to sign in. Please try again');
       }
-    } finally {
       setLoading(false);
     }
   };
@@ -78,7 +95,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-gray-900 placeholder:text-gray-400"
                 placeholder="admin@example.com"
                 disabled={loading}
               />
@@ -95,7 +112,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-gray-900 placeholder:text-gray-400"
                 placeholder="••••••••"
                 disabled={loading}
               />

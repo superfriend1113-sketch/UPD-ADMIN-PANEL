@@ -3,8 +3,6 @@
  * Represents a classification grouping for deals
  */
 
-import { Timestamp } from 'firebase/firestore';
-
 export interface Category {
   // Identifiers
   id: string;
@@ -25,8 +23,8 @@ export interface Category {
   dealCount: number;             // Number of deals in category (integer)
 
   // Timestamps
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  createdAt: Date | string;
+  updatedAt: Date | string;
 }
 
 /**
@@ -61,14 +59,6 @@ export function validateCategory(category: Partial<Category>): string[] {
     if (category.dealCount < 0) {
       errors.push('dealCount must be non-negative');
     }
-  }
-
-  // Timestamp validation
-  if (category.createdAt && !(category.createdAt instanceof Timestamp)) {
-    errors.push('createdAt must be a Firebase Timestamp');
-  }
-  if (category.updatedAt && !(category.updatedAt instanceof Timestamp)) {
-    errors.push('updatedAt must be a Firebase Timestamp');
   }
 
   return errors;

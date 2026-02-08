@@ -1,10 +1,10 @@
 /**
  * Dashboard Layout
- * Protected layout that requires authentication
+ * Protected layout that requires admin authentication
  */
 
 import { redirect } from 'next/navigation';
-import { verifySession } from '@/lib/auth';
+import { requireRole } from '@/lib/auth';
 import AuthProvider from '@/components/auth/AuthProvider';
 import Sidebar from '@/components/layout/Sidebar';
 
@@ -13,10 +13,11 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Server-side authentication check
-  const session = await verifySession();
-  
-  if (!session) {
+  // Server-side authentication check with admin role requirement
+  try {
+    await requireRole('admin');
+  } catch (error) {
+    // Redirect to login if not authenticated or not an admin
     redirect('/login');
   }
 

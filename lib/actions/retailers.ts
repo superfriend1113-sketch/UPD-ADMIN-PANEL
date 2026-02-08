@@ -5,15 +5,14 @@
  */
 
 import { revalidatePath } from 'next/cache';
-import { getAdminFirestore } from '../firebase/adminConfig';
+import { supabaseAdmin } from '../supabase/adminConfig';
 import { validateRetailer, isSlugUnique, generateSlug } from '../validations';
-import { requireAuth } from '../auth';
+import { requireRole } from '../auth';
 import type { ActionResult, Retailer } from '../types';
-import { Timestamp } from 'firebase-admin/firestore';
 
 export async function createRetailer(formData: FormData): Promise<ActionResult> {
   try {
-    await requireAuth();
+    await requireRole('admin');
     
     const retailerData: Partial<Retailer> = {
       name: formData.get('name') as string,
@@ -37,26 +36,29 @@ export async function createRetailer(formData: FormData): Promise<ActionResult> 
       return { success: false, message: 'Validation failed', errors: { slug: 'This slug is already in use' } };
     }
     
-    const db = getAdminFirestore();
-    const now = Timestamp.now();
+    const { uid } = await requireRole('admin');
     
-    const firestoreData: any = {
-      name: retailerData.name,
-      slug: retailerData.slug,
-      logoUrl: retailerData.logoUrl,
-      websiteUrl: retailerData.websiteUrl,
-      commission: retailerData.commission,
-      isActive: retailerData.isActive,
-      dealCount: 0,
-      createdAt: now,
-      updatedAt: now,
-    };
+    const { error } = await supabaseAdmin
+      .from('retailers')
+      .insert({
+        name: retailerData.name,
+        slug: retailerData.slug,
+        logo_url: retailerData.logoUrl,
+        website_url: retailerData.websiteUrl,
+        commission: retailerData.commission,
+        affiliate_id: retailerData.affiliateId || null,
+        is_active: retailerData.isActive,
+        deal_count: 0,
+        // Admin-created retailers are automatically approved
+        status: 'approved',
+        approved_at: new Date().toISOString(),
+        approved_by: uid,
+      });
     
-    if (retailerData.affiliateId) {
-      firestoreData.affiliateId = retailerData.affiliateId;
+    if (error) {
+      console.error('Supabase error:', error);
+      return { success: false, message: error.message || 'Failed to create retailer' };
     }
-    
-    await db.collection('retailers').add(firestoreData);
     
     revalidatePath('/retailers');
     revalidatePath('/deals');
@@ -70,7 +72,7 @@ export async function createRetailer(formData: FormData): Promise<ActionResult> 
 
 export async function updateRetailer(id: string, formData: FormData): Promise<ActionResult> {
   try {
-    await requireAuth();
+    await requireRole('admin');
     
     const retailerData: Partial<Retailer> = {
       name: formData.get('name') as string,
@@ -94,29 +96,26 @@ export async function updateRetailer(id: string, formData: FormData): Promise<Ac
       return { success: false, message: 'Validation failed', errors: { slug: 'This slug is already in use' } };
     }
     
-    const db = getAdminFirestore();
-    const retailerRef = db.collection('retailers').doc(id);
+    const { error } = await supabaseAdmin
+      .from('retailers')
+      .update({
+        name: retailerData.name,
+        slug: retailerData.slug,
+        logo_url: retailerData.logoUrl,
+        website_url: retailerData.websiteUrl,
+        commission: retailerData.commission,
+        affiliate_id: retailerData.affiliateId || null,
+        is_active: retailerData.isActive,
+      })
+      .eq('id', id);
     
-    const retailerDoc = await retailerRef.get();
-    if (!retailerDoc.exists) {
-      return { success: false, message: 'Retailer not found' };
+    if (error) {
+      console.error('Supabase error:', error);
+      if (error.code === 'PGRST116') {
+        return { success: false, message: 'Retailer not found' };
+      }
+      return { success: false, message: error.message || 'Failed to update retailer' };
     }
-    
-    const updateData: any = {
-      name: retailerData.name,
-      slug: retailerData.slug,
-      logoUrl: retailerData.logoUrl,
-      websiteUrl: retailerData.websiteUrl,
-      commission: retailerData.commission,
-      isActive: retailerData.isActive,
-      updatedAt: Timestamp.now(),
-    };
-    
-    if (retailerData.affiliateId) {
-      updateData.affiliateId = retailerData.affiliateId;
-    }
-    
-    await retailerRef.update(updateData);
     
     revalidatePath('/retailers');
     revalidatePath('/deals');
@@ -130,22 +129,33 @@ export async function updateRetailer(id: string, formData: FormData): Promise<Ac
 
 export async function deleteRetailer(id: string): Promise<ActionResult> {
   try {
-    await requireAuth();
+    await requireRole('admin');
     
-    const db = getAdminFirestore();
-    const retailerRef = db.collection('retailers').doc(id);
+    // First check if retailer has deals
+    const { data: retailer, error: fetchError } = await supabaseAdmin
+      .from('retailers')
+      .select('deal_count')
+      .eq('id', id)
+      .single();
     
-    const retailerDoc = await retailerRef.get();
-    if (!retailerDoc.exists) {
+    if (fetchError || !retailer) {
       return { success: false, message: 'Retailer not found' };
     }
     
-    const dealCount = retailerDoc.data()?.dealCount || 0;
+    const dealCount = retailer.deal_count || 0;
     if (dealCount > 0) {
       return { success: false, message: `Cannot delete retailer with ${dealCount} associated deal(s)` };
     }
     
-    await retailerRef.delete();
+    const { error } = await supabaseAdmin
+      .from('retailers')
+      .delete()
+      .eq('id', id);
+    
+    if (error) {
+      console.error('Supabase error:', error);
+      return { success: false, message: error.message || 'Failed to delete retailer' };
+    }
     
     revalidatePath('/retailers');
     revalidatePath('/deals');
@@ -159,16 +169,30 @@ export async function deleteRetailer(id: string): Promise<ActionResult> {
 
 export async function getRetailers(): Promise<Retailer[]> {
   try {
-    await requireAuth();
+    await requireRole('admin');
     
-    const db = getAdminFirestore();
-    const snapshot = await db.collection('retailers').orderBy('name').get();
+    const { data, error } = await supabaseAdmin
+      .from('retailers')
+      .select('*')
+      .order('name', { ascending: true });
     
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt?.toDate(),
-      updatedAt: doc.data().updatedAt?.toDate(),
+    if (error) {
+      console.error('Supabase error:', error);
+      return [];
+    }
+    
+    return (data || []).map(ret => ({
+      id: ret.id,
+      name: ret.name,
+      slug: ret.slug,
+      logoUrl: ret.logo_url,
+      websiteUrl: ret.website_url,
+      affiliateId: ret.affiliate_id,
+      isActive: ret.is_active,
+      dealCount: ret.deal_count,
+      commission: ret.commission,
+      createdAt: new Date(ret.created_at),
+      updatedAt: new Date(ret.updated_at),
     })) as Retailer[];
   } catch (error) {
     console.error('Error fetching retailers:', error);
@@ -178,23 +202,168 @@ export async function getRetailers(): Promise<Retailer[]> {
 
 export async function getRetailer(id: string): Promise<Retailer | null> {
   try {
-    await requireAuth();
+    await requireRole('admin');
     
-    const db = getAdminFirestore();
-    const doc = await db.collection('retailers').doc(id).get();
+    const { data, error } = await supabaseAdmin
+      .from('retailers')
+      .select('*')
+      .eq('id', id)
+      .single();
     
-    if (!doc.exists) {
+    if (error || !data) {
       return null;
     }
     
     return {
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data()?.createdAt?.toDate(),
-      updatedAt: doc.data()?.updatedAt?.toDate(),
+      id: data.id,
+      name: data.name,
+      slug: data.slug,
+      logoUrl: data.logo_url,
+      websiteUrl: data.website_url,
+      affiliateId: data.affiliate_id,
+      isActive: data.is_active,
+      dealCount: data.deal_count,
+      commission: data.commission,
+      createdAt: new Date(data.created_at),
+      updatedAt: new Date(data.updated_at),
     } as Retailer;
   } catch (error) {
     console.error('Error fetching retailer:', error);
     return null;
+  }
+}
+
+/**
+ * Approve a pending retailer
+ */
+export async function approveRetailer(id: string): Promise<ActionResult> {
+  try {
+    const { uid } = await requireRole('admin');
+
+    // Update retailer status to approved
+    const { error } = await supabaseAdmin
+      .from('retailers')
+      .update({
+        status: 'approved',
+        approved_at: new Date().toISOString(),
+        approved_by: uid,
+        rejection_reason: null,
+      })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Supabase error:', error);
+      return {
+        success: false,
+        message: error.message || 'Failed to approve retailer',
+      };
+    }
+
+    revalidatePath('/retailers');
+    revalidatePath('/retailers/pending');
+
+    return {
+      success: true,
+      message: 'Retailer approved successfully',
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Error approving retailer:', errorMessage);
+    return {
+      success: false,
+      message: errorMessage,
+    };
+  }
+}
+
+/**
+ * Reject a pending retailer
+ */
+export async function rejectRetailer(id: string, reason: string): Promise<ActionResult> {
+  try {
+    const { uid } = await requireRole('admin');
+
+    if (!reason || reason.trim().length === 0) {
+      return {
+        success: false,
+        message: 'Rejection reason is required',
+      };
+    }
+
+    // Update retailer status to rejected
+    const { error } = await supabaseAdmin
+      .from('retailers')
+      .update({
+        status: 'rejected',
+        approved_at: null,
+        approved_by: uid,
+        rejection_reason: reason,
+      })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Supabase error:', error);
+      return {
+        success: false,
+        message: error.message || 'Failed to reject retailer',
+      };
+    }
+
+    revalidatePath('/retailers');
+    revalidatePath('/retailers/pending');
+
+    return {
+      success: true,
+      message: 'Retailer rejected',
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Error rejecting retailer:', errorMessage);
+    return {
+      success: false,
+      message: errorMessage,
+    };
+  }
+}
+
+/**
+ * Get all pending retailers (awaiting approval)
+ */
+export async function getPendingRetailers(): Promise<Retailer[]> {
+  try {
+    await requireRole('admin');
+
+    const { data, error } = await supabaseAdmin
+      .from('retailers')
+      .select('*')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Supabase error:', error);
+      return [];
+    }
+
+    return data.map(row => ({
+      id: row.id,
+      name: row.name,
+      slug: row.slug,
+      logoUrl: row.logo_url,
+      websiteUrl: row.website_url,
+      affiliateId: row.affiliate_id,
+      isActive: row.is_active,
+      dealCount: row.deal_count,
+      commission: row.commission,
+      userId: row.user_id,
+      status: row.status,
+      approvedAt: row.approved_at,
+      approvedBy: row.approved_by,
+      rejectionReason: row.rejection_reason,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    }));
+  } catch (error) {
+    console.error('Error fetching pending retailers:', error);
+    return [];
   }
 }

@@ -5,45 +5,52 @@
 
 import Link from 'next/link';
 import { requireAuth } from '@/lib/auth';
-import { getAdminFirestore } from '@/lib/firebase/adminConfig';
-import { Timestamp } from 'firebase-admin/firestore';
+import { supabaseAdmin } from '@/lib/supabase/adminConfig';
 
 export const dynamic = 'force-dynamic';
 
 async function getDashboardMetrics() {
-  const db = getAdminFirestore();
-  const now = Timestamp.now();
+  const now = new Date().toISOString();
 
   // Fetch all deals
-  const dealsSnapshot = await db.collection('deals').get();
-  const deals = dealsSnapshot.docs.map(doc => {
-    const data = doc.data();
-    return {
-      id: doc.id,
-      isActive: data.isActive,
-      expirationDate: data.expirationDate
-    };
-  });
+  const { data: deals, error: dealsError } = await supabaseAdmin
+    .from('deals')
+    .select('id, is_active, expiration_date, status');
+
+  if (dealsError) throw dealsError;
 
   // Calculate metrics
-  const totalDeals = deals.length;
-  const activeDeals = deals.filter(deal => 
-    deal.isActive && deal.expirationDate && deal.expirationDate.toMillis() > now.toMillis()
-  ).length;
-  const expiredDeals = deals.filter(deal => 
-    deal.expirationDate && deal.expirationDate.toMillis() <= now.toMillis()
-  ).length;
+  const totalDeals = deals?.length || 0;
+  const activeDeals = deals?.filter(deal => 
+    deal.is_active && deal.expiration_date && new Date(deal.expiration_date) > new Date(now)
+  ).length || 0;
+  const expiredDeals = deals?.filter(deal => 
+    deal.expiration_date && new Date(deal.expiration_date) <= new Date(now)
+  ).length || 0;
+  const pendingDeals = deals?.filter(deal => deal.status === 'pending').length || 0;
 
-  // Fetch categories and retailers
-  const categoriesSnapshot = await db.collection('categories').get();
-  const retailersSnapshot = await db.collection('retailers').get();
+  // Fetch categories and retailers counts
+  const { count: categoriesCount } = await supabaseAdmin
+    .from('categories')
+    .select('*', { count: 'exact', head: true });
+
+  const { count: retailersCount } = await supabaseAdmin
+    .from('retailers')
+    .select('*', { count: 'exact', head: true });
+
+  const { count: pendingRetailersCount } = await supabaseAdmin
+    .from('retailers')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'pending');
 
   return {
     totalDeals,
     activeDeals,
     expiredDeals,
-    totalCategories: categoriesSnapshot.size,
-    totalRetailers: retailersSnapshot.size
+    pendingDeals,
+    totalCategories: categoriesCount || 0,
+    totalRetailers: retailersCount || 0,
+    pendingRetailers: pendingRetailersCount || 0,
   };
 }
 
@@ -124,6 +131,54 @@ export default async function DashboardPage() {
           <p className="text-sm text-gray-600">Retailers</p>
         </div>
       </div>
+
+      {/* Pending Approvals Section */}
+      {(metrics.pendingDeals > 0 || metrics.pendingRetailers > 0) && (
+        <div className="mb-8">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Pending Approvals</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Pending Deals */}
+            {metrics.pendingDeals > 0 && (
+              <Link href="/deals/pending" className="block">
+                <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow hover:border-yellow-400">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                      <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-200 text-yellow-800">
+                      {metrics.pendingDeals} pending
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Pending Deals</h3>
+                  <p className="text-gray-600 text-sm">Review and approve submitted deals</p>
+                </div>
+              </Link>
+            )}
+
+            {/* Pending Retailers */}
+            {metrics.pendingRetailers > 0 && (
+              <Link href="/retailers/pending" className="block">
+                <div className="bg-orange-50 border-2 border-orange-200 rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow hover:border-orange-400">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                      <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-200 text-orange-800">
+                      {metrics.pendingRetailers} pending
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Pending Retailers</h3>
+                  <p className="text-gray-600 text-sm">Review and approve retailer applications</p>
+                </div>
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

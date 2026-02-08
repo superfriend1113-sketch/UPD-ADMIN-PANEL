@@ -8,20 +8,20 @@ import { createSession, destroySession } from '@/lib/auth';
 
 /**
  * POST /api/auth/session
- * Create session cookie from Firebase ID token
+ * Create session cookie from Supabase access and refresh tokens
  */
 export async function POST(request: NextRequest) {
   try {
-    const { idToken } = await request.json();
+    const { accessToken, refreshToken } = await request.json();
     
-    if (!idToken) {
+    if (!accessToken || !refreshToken) {
       return NextResponse.json(
-        { error: 'ID token is required' },
+        { error: 'Access token and refresh token are required' },
         { status: 400 }
       );
     }
     
-    const success = await createSession(idToken);
+    const success = await createSession(accessToken, refreshToken);
     
     if (!success) {
       return NextResponse.json(

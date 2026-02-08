@@ -2,12 +2,12 @@
 
 /**
  * AuthProvider Component
- * Manages Firebase authentication state and provides auth context
+ * Manages Supabase authentication state and provides auth context
  */
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, onAuthStateChanged } from 'firebase/auth';
-import { getAuthInstance } from '@/lib/firebase/clientConfig';
+import { User } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase/clientConfig';
 
 interface AuthContextType {
   user: User | null;
@@ -32,29 +32,19 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const auth = getAuthInstance();
-    
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setUser(user);
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      setUser(session?.user ?? null);
       
-      // Create session cookie when user signs in
-      if (user) {
-        try {
-          const idToken = await user.getIdToken();
-          
-          // Call API route to create session cookie
-          await fetch('/api/auth/session', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ idToken }),
-          });
-        } catch (error) {
-          console.error('Error creating session:', error);
-        }
-      } else {
-        // Delete session cookie when user signs out
+      // Only handle session cookies for sign out event
+      // Sign in is handled manually in login page to avoid race conditions
+      if (event === 'SIGNED_OUT') {
         try {
           await fetch('/api/auth/session', {
             method: 'DELETE',
@@ -63,11 +53,9 @@ export default function AuthProvider({ children }: AuthProviderProps) {
           console.error('Error deleting session:', error);
         }
       }
-      
-      setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => subscription.unsubscribe();
   }, []);
 
   return (

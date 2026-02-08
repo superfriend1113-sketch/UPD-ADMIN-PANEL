@@ -3,7 +3,7 @@
  * Comprehensive validation functions for forms and data integrity
  */
 
-import { getAdminFirestore } from './firebase/adminConfig';
+import { supabaseAdmin } from './supabase/adminConfig';
 import type { Deal, Category, Retailer, ValidationResult } from './types';
 import {
   validateURL,
@@ -36,18 +36,20 @@ export async function isSlugUnique(
   excludeId?: string
 ): Promise<boolean> {
   try {
-    const db = getAdminFirestore();
-    const snapshot = await db.collection(collection)
-      .where('slug', '==', slug)
-      .limit(1)
-      .get();
+    const query = supabaseAdmin
+      .from(collection)
+      .select('id')
+      .eq('slug', slug)
+      .limit(1);
     
-    if (snapshot.empty) return true;
+    const { data, error } = await query;
+    
+    if (error) throw error;
+    if (!data || data.length === 0) return true;
     
     // If excludeId is provided, check if the found document is the one being edited
     if (excludeId) {
-      const doc = snapshot.docs[0];
-      return doc.id === excludeId;
+      return data[0].id === excludeId;
     }
     
     return false;

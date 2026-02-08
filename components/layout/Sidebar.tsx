@@ -8,6 +8,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
+import { supabase } from '@/lib/supabase/clientConfig';
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -51,6 +52,27 @@ export default function Sidebar() {
       ),
     },
   ];
+
+  const approvalNavigation = [
+    {
+      name: 'Pending Deals',
+      href: '/deals/pending',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+    },
+    {
+      name: 'Pending Retailers',
+      href: '/retailers/pending',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+      ),
+    },
+  ];
   
   const isActive = (href: string) => {
     if (href === '/') {
@@ -61,10 +83,18 @@ export default function Sidebar() {
   
   const handleLogout = async () => {
     try {
+      // Sign out from Supabase (client-side)
+      await supabase.auth.signOut();
+      
+      // Delete session cookie (server-side)
       await fetch('/api/auth/session', { method: 'DELETE' });
+      
+      // Redirect to login
       window.location.href = '/login';
     } catch (error) {
       console.error('Logout error:', error);
+      // Force redirect even on error
+      window.location.href = '/login';
     }
   };
   
@@ -112,6 +142,28 @@ export default function Sidebar() {
                 <span className="font-medium">{item.name}</span>
               </Link>
             ))}
+
+            {/* Approvals Section */}
+            <div className="pt-6">
+              <h3 className="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                Approvals
+              </h3>
+              {approvalNavigation.map((item) => (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                    isActive(item.href)
+                      ? 'bg-blue-600 text-white'
+                      : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                  }`}
+                >
+                  {item.icon}
+                  <span className="font-medium">{item.name}</span>
+                </Link>
+              ))}
+            </div>
           </nav>
           
           {/* Logout button */}

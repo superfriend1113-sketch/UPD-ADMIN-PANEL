@@ -3,14 +3,12 @@
  * Represents daily aggregated metrics about platform usage
  */
 
-import { Timestamp } from 'firebase/firestore';
-
 export interface Analytics {
   // Identifiers
   id: string;                    // Unique identifier (typically date-based, e.g., "2026-02-03")
 
   // Date
-  date: Timestamp;               // Date for this analytics record
+  date: Date | string;           // Date for this analytics record
 
   // Aggregate Metrics
   totalViews: number;            // Total views across all deals (integer)
@@ -62,11 +60,6 @@ export function validateAnalytics(analytics: Partial<Analytics>): string[] {
         errors.push(`${field} must be non-negative`);
       }
     }
-  }
-
-  // Timestamp validation
-  if (analytics.date && !(analytics.date instanceof Timestamp)) {
-    errors.push('date must be a Firebase Timestamp');
   }
 
   // Category breakdown validation

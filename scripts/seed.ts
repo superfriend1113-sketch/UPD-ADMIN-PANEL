@@ -2,28 +2,26 @@
 
 /**
  * Seed Script Entry Point
- * Run this script to populate Firestore with initial sample data
+ * Run this script to populate Supabase with initial sample data
  * 
  * Usage:
  *   npm run seed
  */
 
+// Load environment variables from .env.local FIRST before any imports
 import dotenv from 'dotenv';
-import { initializeAdmin, getAdminFirestore } from '../lib/firebase/adminConfig';
-import { seedAll } from './seedData';
-
-// Load environment variables from .env.local
 dotenv.config({ path: '.env.local' });
+
+// Now import modules that depend on environment variables
+import { supabaseAdmin } from '../lib/supabase/adminConfig';
+import { seedAll } from './seedData';
 
 async function main() {
   try {
-    console.log('Initializing Firebase Admin SDK...');
-    initializeAdmin();
-    
-    const db = getAdminFirestore();
-    console.log('Connected to Firestore\n');
+    console.log('Initializing Supabase Admin Client...');
+    console.log('Connected to Supabase\n');
 
-    await seedAll(db);
+    await seedAll(supabaseAdmin);
 
     console.log('\nSeeding complete! You can now use the application with sample data.');
     process.exit(0);

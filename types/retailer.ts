@@ -3,7 +3,7 @@
  * Represents a merchant or store that offers deals
  */
 
-import { Timestamp } from 'firebase/firestore';
+export type RetailerStatus = 'pending' | 'approved' | 'rejected';
 
 export interface Retailer {
   // Identifiers
@@ -12,7 +12,7 @@ export interface Retailer {
   // Retailer Information
   name: string;                  // Display name
   slug: string;                  // URL-friendly identifier
-  logoUrl: string;               // Firebase Storage URL for logo
+  logoUrl: string;               // Supabase Storage URL for logo
   websiteUrl: string;            // Retailer website
   affiliateId?: string;          // Affiliate tracking ID
 
@@ -25,9 +25,33 @@ export interface Retailer {
   // Business
   commission: string;            // Commission rate or structure
 
+  // User Account Linking & Approval
+  userId?: string | null;        // Linked auth.users ID
+  status: RetailerStatus;        // Pending, approved, or rejected
+  approvedAt?: Date | string | null;   // When retailer was approved
+  approvedBy?: string | null;    // Admin user ID who approved
+  rejectionReason?: string | null;     // Why retailer was rejected
+
   // Timestamps
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+/**
+ * Check if a user can manage this retailer
+ * @param retailer - Retailer to check
+ * @param userId - User ID attempting access
+ * @param userRole - Role of the user
+ * @returns True if user can manage retailer
+ */
+export function canManageRetailer(
+  retailer: Retailer,
+  userId: string,
+  userRole: 'admin' | 'retailer' | 'consumer'
+): boolean {
+  if (userRole === 'admin') return true;
+  if (userRole === 'retailer' && retailer.userId === userId) return true;
+  return false;
 }
 
 /**
@@ -62,14 +86,6 @@ export function validateRetailer(retailer: Partial<Retailer>): string[] {
     if (retailer.dealCount < 0) {
       errors.push('dealCount must be non-negative');
     }
-  }
-
-  // Timestamp validation
-  if (retailer.createdAt && !(retailer.createdAt instanceof Timestamp)) {
-    errors.push('createdAt must be a Firebase Timestamp');
-  }
-  if (retailer.updatedAt && !(retailer.updatedAt instanceof Timestamp)) {
-    errors.push('updatedAt must be a Firebase Timestamp');
   }
 
   return errors;

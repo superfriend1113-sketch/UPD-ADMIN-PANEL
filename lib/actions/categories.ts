@@ -6,18 +6,17 @@
  */
 
 import { revalidatePath } from 'next/cache';
-import { getAdminFirestore } from '../firebase/adminConfig';
+import { supabaseAdmin } from '../supabase/adminConfig';
 import { validateCategory, isSlugUnique, generateSlug } from '../validations';
-import { requireAuth } from '../auth';
+import { requireRole } from '../auth';
 import type { ActionResult, Category } from '../types';
-import { Timestamp } from 'firebase-admin/firestore';
 
 /**
  * Create a new category
  */
 export async function createCategory(formData: FormData): Promise<ActionResult> {
   try {
-    await requireAuth();
+    await requireRole('admin');
     
     const categoryData: Partial<Category> = {
       name: formData.get('name') as string,
@@ -48,20 +47,25 @@ export async function createCategory(formData: FormData): Promise<ActionResult> 
       };
     }
     
-    const db = getAdminFirestore();
-    const now = Timestamp.now();
+    const { error } = await supabaseAdmin
+      .from('categories')
+      .insert({
+        name: categoryData.name,
+        slug: categoryData.slug,
+        description: categoryData.description,
+        icon: categoryData.icon,
+        order: categoryData.order,
+        is_active: categoryData.isActive,
+        deal_count: 0,
+      });
     
-    await db.collection('categories').add({
-      name: categoryData.name,
-      slug: categoryData.slug,
-      description: categoryData.description,
-      icon: categoryData.icon,
-      order: categoryData.order,
-      isActive: categoryData.isActive,
-      dealCount: 0,
-      createdAt: now,
-      updatedAt: now,
-    });
+    if (error) {
+      console.error('Supabase error:', error);
+      return {
+        success: false,
+        message: error.message || 'Failed to create category',
+      };
+    }
     
     revalidatePath('/categories');
     revalidatePath('/deals');
@@ -84,7 +88,7 @@ export async function createCategory(formData: FormData): Promise<ActionResult> 
  */
 export async function updateCategory(id: string, formData: FormData): Promise<ActionResult> {
   try {
-    await requireAuth();
+    await requireRole('admin');
     
     const categoryData: Partial<Category> = {
       name: formData.get('name') as string,
@@ -115,26 +119,31 @@ export async function updateCategory(id: string, formData: FormData): Promise<Ac
       };
     }
     
-    const db = getAdminFirestore();
-    const categoryRef = db.collection('categories').doc(id);
+    const { error } = await supabaseAdmin
+      .from('categories')
+      .update({
+        name: categoryData.name,
+        slug: categoryData.slug,
+        description: categoryData.description,
+        icon: categoryData.icon,
+        order: categoryData.order,
+        is_active: categoryData.isActive,
+      })
+      .eq('id', id);
     
-    const categoryDoc = await categoryRef.get();
-    if (!categoryDoc.exists) {
+    if (error) {
+      console.error('Supabase error:', error);
+      if (error.code === 'PGRST116') {
+        return {
+          success: false,
+          message: 'Category not found',
+        };
+      }
       return {
         success: false,
-        message: 'Category not found',
+        message: error.message || 'Failed to update category',
       };
     }
-    
-    await categoryRef.update({
-      name: categoryData.name,
-      slug: categoryData.slug,
-      description: categoryData.description,
-      icon: categoryData.icon,
-      order: categoryData.order,
-      isActive: categoryData.isActive,
-      updatedAt: Timestamp.now(),
-    });
     
     revalidatePath('/categories');
     revalidatePath('/deals');
@@ -157,13 +166,16 @@ export async function updateCategory(id: string, formData: FormData): Promise<Ac
  */
 export async function deleteCategory(id: string): Promise<ActionResult> {
   try {
-    await requireAuth();
+    await requireRole('admin');
     
-    const db = getAdminFirestore();
-    const categoryRef = db.collection('categories').doc(id);
+    // First check if category has deals
+    const { data: category, error: fetchError } = await supabaseAdmin
+      .from('categories')
+      .select('deal_count')
+      .eq('id', id)
+      .single();
     
-    const categoryDoc = await categoryRef.get();
-    if (!categoryDoc.exists) {
+    if (fetchError || !category) {
       return {
         success: false,
         message: 'Category not found',
@@ -171,7 +183,7 @@ export async function deleteCategory(id: string): Promise<ActionResult> {
     }
     
     // Check if category has deals
-    const dealCount = categoryDoc.data()?.dealCount || 0;
+    const dealCount = category.deal_count || 0;
     if (dealCount > 0) {
       return {
         success: false,
@@ -179,7 +191,18 @@ export async function deleteCategory(id: string): Promise<ActionResult> {
       };
     }
     
-    await categoryRef.delete();
+    const { error } = await supabaseAdmin
+      .from('categories')
+      .delete()
+      .eq('id', id);
+    
+    if (error) {
+      console.error('Supabase error:', error);
+      return {
+        success: false,
+        message: error.message || 'Failed to delete category',
+      };
+    }
     
     revalidatePath('/categories');
     revalidatePath('/deals');
@@ -202,23 +225,26 @@ export async function deleteCategory(id: string): Promise<ActionResult> {
  */
 export async function updateCategoryOrder(id: string, order: number): Promise<ActionResult> {
   try {
-    await requireAuth();
+    await requireRole('admin');
     
-    const db = getAdminFirestore();
-    const categoryRef = db.collection('categories').doc(id);
+    const { error } = await supabaseAdmin
+      .from('categories')
+      .update({ order })
+      .eq('id', id);
     
-    const categoryDoc = await categoryRef.get();
-    if (!categoryDoc.exists) {
+    if (error) {
+      console.error('Supabase error:', error);
+      if (error.code === 'PGRST116') {
+        return {
+          success: false,
+          message: 'Category not found',
+        };
+      }
       return {
         success: false,
-        message: 'Category not found',
+        message: error.message || 'Failed to update category order',
       };
     }
-    
-    await categoryRef.update({
-      order,
-      updatedAt: Timestamp.now(),
-    });
     
     revalidatePath('/categories');
     
@@ -240,18 +266,29 @@ export async function updateCategoryOrder(id: string, order: number): Promise<Ac
  */
 export async function getCategories(): Promise<Category[]> {
   try {
-    await requireAuth();
+    await requireRole('admin');
     
-    const db = getAdminFirestore();
-    const snapshot = await db.collection('categories')
-      .orderBy('order')
-      .get();
+    const { data, error } = await supabaseAdmin
+      .from('categories')
+      .select('*')
+      .order('order', { ascending: true });
     
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt?.toDate(),
-      updatedAt: doc.data().updatedAt?.toDate(),
+    if (error) {
+      console.error('Supabase error:', error);
+      return [];
+    }
+    
+    return (data || []).map(cat => ({
+      id: cat.id,
+      name: cat.name,
+      slug: cat.slug,
+      description: cat.description,
+      icon: cat.icon,
+      order: cat.order,
+      isActive: cat.is_active,
+      dealCount: cat.deal_count,
+      createdAt: new Date(cat.created_at),
+      updatedAt: new Date(cat.updated_at),
     })) as Category[];
   } catch (error) {
     console.error('Error fetching categories:', error);
@@ -264,20 +301,29 @@ export async function getCategories(): Promise<Category[]> {
  */
 export async function getCategory(id: string): Promise<Category | null> {
   try {
-    await requireAuth();
+    await requireRole('admin');
     
-    const db = getAdminFirestore();
-    const doc = await db.collection('categories').doc(id).get();
+    const { data, error } = await supabaseAdmin
+      .from('categories')
+      .select('*')
+      .eq('id', id)
+      .single();
     
-    if (!doc.exists) {
+    if (error || !data) {
       return null;
     }
     
     return {
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data()?.createdAt?.toDate(),
-      updatedAt: doc.data()?.updatedAt?.toDate(),
+      id: data.id,
+      name: data.name,
+      slug: data.slug,
+      description: data.description,
+      icon: data.icon,
+      order: data.order,
+      isActive: data.is_active,
+      dealCount: data.deal_count,
+      createdAt: new Date(data.created_at),
+      updatedAt: new Date(data.updated_at),
     } as Category;
   } catch (error) {
     console.error('Error fetching category:', error);
