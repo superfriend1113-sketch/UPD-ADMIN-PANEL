@@ -78,7 +78,19 @@ export default function Sidebar() {
     if (href === '/') {
       return pathname === '/';
     }
-    return pathname.startsWith(href);
+    
+    // For pending routes, match exactly or with sub-paths
+    if (href.includes('/pending')) {
+      return pathname === href || pathname.startsWith(href + '/');
+    }
+    
+    // For main routes, don't match if we're currently in a pending sub-route
+    if (pathname.includes('/pending') && !href.includes('/pending')) {
+      return false;
+    }
+    
+    // Standard matching for other routes
+    return pathname === href || pathname.startsWith(href + '/');
   };
   
   const handleLogout = async () => {
