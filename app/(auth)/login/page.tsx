@@ -29,6 +29,13 @@ export default function LoginPage() {
       
       if (error) throw error;
       
+      // Check if user has retailer role
+      const userRole = data.user?.user_metadata?.role;
+      if (userRole && userRole !== 'retailer') {
+        await supabase.auth.signOut();
+        throw new Error('This account is registered as a consumer. Please use the consumer website to sign in.');
+      }
+      
       // Wait for session cookie to be created
       if (data.session) {
         await fetch('/api/auth/session', {
@@ -56,6 +63,8 @@ export default function LoginPage() {
         setError('Invalid email or password');
       } else if (err.message?.includes('Email not confirmed')) {
         setError('Please confirm your email address');
+      } else if (err.message?.includes('consumer')) {
+        setError(err.message);
       } else {
         setError('Failed to sign in. Please try again');
       }

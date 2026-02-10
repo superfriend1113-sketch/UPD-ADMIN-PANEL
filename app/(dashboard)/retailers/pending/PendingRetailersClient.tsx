@@ -60,17 +60,25 @@ export default function PendingRetailersClient({ retailers }: PendingRetailersCl
                 </p>
 
                 <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <span className="text-gray-500">Website:</span>{' '}
-                    <a
-                      href={retailer.websiteUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline"
-                    >
-                      {new URL(retailer.websiteUrl).hostname}
-                    </a>
-                  </div>
+                  {retailer.websiteUrl && (
+                    <div>
+                      <span className="text-gray-500">Website:</span>{' '}
+                      <a
+                        href={retailer.websiteUrl.startsWith('http') ? retailer.websiteUrl : `https://${retailer.websiteUrl}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline"
+                      >
+                        {(() => {
+                          try {
+                            return new URL(retailer.websiteUrl.startsWith('http') ? retailer.websiteUrl : `https://${retailer.websiteUrl}`).hostname;
+                          } catch {
+                            return retailer.websiteUrl;
+                          }
+                        })()}
+                      </a>
+                    </div>
+                  )}
                   <div>
                     <span className="text-gray-500">Commission:</span>{' '}
                     <span className="font-medium">{retailer.commission}</span>
