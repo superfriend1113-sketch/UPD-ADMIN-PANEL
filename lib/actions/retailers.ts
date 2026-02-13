@@ -240,23 +240,55 @@ export async function approveRetailer(id: string): Promise<ActionResult> {
   try {
     const { uid } = await requireRole('admin');
 
-    // Update retailer status to approved
-    const { error } = await supabaseAdmin
+    // First, get the retailer to find the associated user_id
+    const { data: retailer, error: fetchError } = await supabaseAdmin
+      .from('retailers')
+      .select('user_id')
+      .eq('id', id)
+      .single();
+
+    if (fetchError || !retailer) {
+      return {
+        success: false,
+        message: 'Retailer not found',
+      };
+    }
+
+    // Update retailer status to approved and activate the account
+    const { error: retailerError } = await supabaseAdmin
       .from('retailers')
       .update({
         status: 'approved',
+        is_active: true,
         approved_at: new Date().toISOString(),
         approved_by: uid,
         rejection_reason: null,
       })
       .eq('id', id);
 
-    if (error) {
-      console.error('Supabase error:', error);
+    if (retailerError) {
+      console.error('Supabase error updating retailer:', retailerError);
       return {
         success: false,
-        message: error.message || 'Failed to approve retailer',
+        message: retailerError.message || 'Failed to approve retailer',
       };
+    }
+
+    // Update user_profiles with approval status
+    if (retailer.user_id) {
+      const { error: profileError } = await supabaseAdmin
+        .from('user_profiles')
+        .update({
+          retailer_status: 'approved',
+          rejection_reason: null,
+          rejection_date: null,
+        })
+        .eq('id', retailer.user_id);
+
+      if (profileError) {
+        console.error('Error updating user profile:', profileError);
+        // Don't fail the whole operation if profile update fails
+      }
     }
 
     revalidatePath('/retailers');
@@ -290,8 +322,22 @@ export async function rejectRetailer(id: string, reason: string): Promise<Action
       };
     }
 
+    // First, get the retailer to find the associated user_id
+    const { data: retailer, error: fetchError } = await supabaseAdmin
+      .from('retailers')
+      .select('user_id')
+      .eq('id', id)
+      .single();
+
+    if (fetchError || !retailer) {
+      return {
+        success: false,
+        message: 'Retailer not found',
+      };
+    }
+
     // Update retailer status to rejected
-    const { error } = await supabaseAdmin
+    const { error: retailerError } = await supabaseAdmin
       .from('retailers')
       .update({
         status: 'rejected',
@@ -301,12 +347,29 @@ export async function rejectRetailer(id: string, reason: string): Promise<Action
       })
       .eq('id', id);
 
-    if (error) {
-      console.error('Supabase error:', error);
+    if (retailerError) {
+      console.error('Supabase error updating retailer:', retailerError);
       return {
         success: false,
-        message: error.message || 'Failed to reject retailer',
+        message: retailerError.message || 'Failed to reject retailer',
       };
+    }
+
+    // Update user_profiles with rejection information
+    if (retailer.user_id) {
+      const { error: profileError } = await supabaseAdmin
+        .from('user_profiles')
+        .update({
+          retailer_status: 'rejected',
+          rejection_reason: reason,
+          rejection_date: new Date().toISOString(),
+        })
+        .eq('id', retailer.user_id);
+
+      if (profileError) {
+        console.error('Error updating user profile:', profileError);
+        // Don't fail the whole operation if profile update fails
+      }
     }
 
     revalidatePath('/retailers');

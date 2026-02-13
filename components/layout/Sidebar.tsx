@@ -6,6 +6,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase/clientConfig';
@@ -133,8 +134,16 @@ export default function Sidebar() {
         <div className="h-full flex flex-col">
           {/* Logo */}
           <div className="p-6 border-b border-gray-800">
-            <h1 className="text-xl font-bold text-white">Admin Panel</h1>
-            <p className="text-sm text-gray-400 mt-1">Deals Management</p>
+            <Link href="/">
+              <Image
+                src="/logo.svg"
+                alt="Unlimited Perfect Deals"
+                width={160}
+                height={50}
+                className="h-10 w-auto brightness-0 invert"
+              />
+            </Link>
+            <p className="text-sm text-gray-400 mt-2">Admin Panel</p>
           </div>
           
           {/* Navigation */}
