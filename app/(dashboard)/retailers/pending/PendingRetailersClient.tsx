@@ -6,15 +6,57 @@
  */
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import type { Retailer } from '@/types/retailer';
-import ApprovalActions from '@/components/dashboard/ApprovalActions';
 import { approveRetailer, rejectRetailer } from '@/lib/actions/retailers';
+import { showToast } from '@/components/ui/Toast';
+import Button from '@/components/ui/Button';
 
 interface PendingRetailersClientProps {
   retailers: Retailer[];
 }
 
 export default function PendingRetailersClient({ retailers }: PendingRetailersClientProps) {
+  const router = useRouter();
+  const [processing, setProcessing] = useState<string | null>(null);
+
+  const handleApprove = async (retailerId: string) => {
+    setProcessing(retailerId);
+    try {
+      const result = await approveRetailer(retailerId);
+      if (result.success) {
+        showToast('Retailer approved successfully', 'success');
+        router.refresh();
+      } else {
+        showToast(result.message || 'Failed to approve retailer', 'error');
+      }
+    } catch (error) {
+      showToast('Error approving retailer', 'error');
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  const handleReject = async (retailerId: string) => {
+    const reason = prompt('Please provide a rejection reason:');
+    if (!reason) return;
+
+    setProcessing(retailerId);
+    try {
+      const result = await rejectRetailer(retailerId, reason);
+      if (result.success) {
+        showToast('Retailer rejected', 'info');
+        router.refresh();
+      } else {
+        showToast(result.message || 'Failed to reject retailer', 'error');
+      }
+    } catch (error) {
+      showToast('Error rejecting retailer', 'error');
+    } finally {
+      setProcessing(null);
+    }
+  };
+
   if (retailers.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow p-8 text-center">
@@ -98,14 +140,23 @@ export default function PendingRetailersClient({ retailers }: PendingRetailersCl
             </div>
 
             {/* Approval Actions */}
-            <div className="ml-4">
-              <ApprovalActions
-                itemId={retailer.id}
-                itemType="retailer"
-                itemName={retailer.name}
-                onApprove={approveRetailer}
-                onReject={rejectRetailer}
-              />
+            <div className="ml-4 flex gap-2">
+              <Button
+                size="sm"
+                variant="success"
+                onClick={() => handleApprove(retailer.id)}
+                disabled={processing === retailer.id}
+              >
+                Approve
+              </Button>
+              <Button
+                size="sm"
+                variant="danger"
+                onClick={() => handleReject(retailer.id)}
+                disabled={processing === retailer.id}
+              >
+                Reject
+              </Button>
             </div>
           </div>
         </div>

@@ -5,16 +5,59 @@
  * Displays pending deals with approval actions
  */
 
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import type { Deal } from '@/types/deal';
-import ApprovalActions from '@/components/dashboard/ApprovalActions';
 import { approveDeal, rejectDeal } from '@/lib/actions/deals';
 import { formatPrice } from '@/types/deal';
+import { showToast } from '@/components/ui/Toast';
+import Button from '@/components/ui/Button';
 
 interface PendingDealsClientProps {
   deals: Deal[];
 }
 
 export default function PendingDealsClient({ deals }: PendingDealsClientProps) {
+  const router = useRouter();
+  const [processing, setProcessing] = useState<string | null>(null);
+
+  const handleApprove = async (dealId: string) => {
+    setProcessing(dealId);
+    try {
+      const result = await approveDeal(dealId);
+      if (result.success) {
+        showToast('Deal approved successfully', 'success');
+        router.refresh();
+      } else {
+        showToast(result.message || 'Failed to approve deal', 'error');
+      }
+    } catch (error) {
+      showToast('Error approving deal', 'error');
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  const handleReject = async (dealId: string) => {
+    const reason = prompt('Please provide a rejection reason:');
+    if (!reason) return;
+
+    setProcessing(dealId);
+    try {
+      const result = await rejectDeal(dealId, reason);
+      if (result.success) {
+        showToast('Deal rejected', 'info');
+        router.refresh();
+      } else {
+        showToast(result.message || 'Failed to reject deal', 'error');
+      }
+    } catch (error) {
+      showToast('Error rejecting deal', 'error');
+    } finally {
+      setProcessing(null);
+    }
+  };
+
   if (deals.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow p-8 text-center">
@@ -107,14 +150,23 @@ export default function PendingDealsClient({ deals }: PendingDealsClientProps) {
             </div>
 
             {/* Approval Actions */}
-            <div className="ml-4">
-              <ApprovalActions
-                itemId={deal.id}
-                itemType="deal"
-                itemName={deal.productName}
-                onApprove={approveDeal}
-                onReject={rejectDeal}
-              />
+            <div className="ml-4 flex gap-2">
+              <Button
+                size="sm"
+                variant="success"
+                onClick={() => handleApprove(deal.id)}
+                disabled={processing === deal.id}
+              >
+                Approve
+              </Button>
+              <Button
+                size="sm"
+                variant="danger"
+                onClick={() => handleReject(deal.id)}
+                disabled={processing === deal.id}
+              >
+                Reject
+              </Button>
             </div>
           </div>
         </div>

@@ -1,0 +1,380 @@
+{
+  "items": [
+    {
+      "id": "flag-001",
+      "sku": "ELEC-2024-001",
+      "title": "Apple iPhone 15 Pro Max 256GB - Natural Titanium",
+      "description": "Brand new iPhone 15 Pro Max in Natural Titanium. Open box items from customer returns. All units tested and verified working. Includes original accessories and 1-year Apple warranty. Perfect condition with no scratches or defects.",
+      "category": "Electronics",
+      "category_id": "cat-electronics-001",
+      "condition": "Open-box",
+      "location": "Warehouse A - Section 3, Chicago IL",
+      "original_price": 1199.99,
+      "current_price": 599.99,
+      "minimum_price": 549.99,
+      "quantity": 50,
+      "retailer_id": "ret-001",
+      "retailer_name": "TechDeals Outlet",
+      "retailer_status": "Verified Partner",
+      "deal_url": "https://techdeals.example.com/iphone-15-pro-max",
+      "image_url": "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=800",
+      "start_date": "2026-02-17",
+      "end_date": "2026-03-17",
+      "status": "pending",
+      "risk_level": "HIGH",
+      "flagged_at": "2026-02-17T10:30:00Z",
+      "flags": [
+        {
+          "text": "Discount >50%",
+          "severity": "high"
+        },
+        {
+          "text": "High quantity",
+          "severity": "default"
+        },
+        {
+          "text": "Premium brand",
+          "severity": "default"
+        }
+      ],
+      "flag_notes": "Automatic flag: Discount exceeds 50% threshold. Verify authenticity and source documentation before approval."
+    },
+    {
+      "id": "flag-002",
+      "sku": "FASH-2024-089",
+      "title": "Designer Leather Handbag - Luxury Collection",
+      "description": "Authentic designer leather handbag from luxury collection. New with original tags and dust bag. Overstock from seasonal collection. Genuine leather with gold hardware. Certificate of authenticity included.",
+      "category": "Fashion & Accessories",
+      "category_id": "cat-fashion-001",
+      "condition": "Overstock",
+      "location": "Warehouse B - Section 1, New York NY",
+      "original_price": 2499.00,
+      "current_price": 899.00,
+      "minimum_price": 799.00,
+      "quantity": 25,
+      "retailer_id": "ret-002",
+      "retailer_name": "Fashion Liquidators Inc",
+      "retailer_status": "New Partner",
+      "deal_url": "https://fashionliquidators.example.com/designer-handbag",
+      "image_url": "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=800",
+      "start_date": "2026-02-17",
+      "end_date": "2026-04-17",
+      "status": "pending",
+      "risk_level": "HIGH",
+      "flagged_at": "2026-02-17T09:15:00Z",
+      "flags": [
+        {
+          "text": "Counterfeit risk",
+          "severity": "high"
+        },
+        {
+          "text": "New retailer",
+          "severity": "default"
+        },
+        {
+          "text": "Luxury item",
+          "severity": "default"
+        }
+      ],
+      "flag_notes": "Automatic flag: Luxury brand item from new retailer. Requires authentication certificate and proof of authorized distribution."
+    },
+    {
+      "id": "flag-003",
+      "sku": "HOME-2024-234",
+      "title": "Dyson V15 Detect Absolute Cordless Vacuum",
+      "description": "Factory refurbished Dyson V15 with full warranty. Professionally cleaned and tested. Includes all original attachments and charging dock. 90-day warranty included. Minor cosmetic wear on handle.",
+      "category": "Home & Garden",
+      "category_id": "cat-home-001",
+      "condition": "Returned",
+      "location": "Warehouse A - Section 7, Los Angeles CA",
+      "original_price": 749.99,
+      "current_price": 299.99,
+      "minimum_price": 249.99,
+      "quantity": 100,
+      "retailer_id": "ret-003",
+      "retailer_name": "Home Essentials Plus",
+      "retailer_status": "Verified Partner",
+      "deal_url": "https://homeessentials.example.com/dyson-v15",
+      "image_url": "https://images.unsplash.com/photo-1558317374-067fb5f30001?w=800",
+      "start_date": "2026-02-17",
+      "end_date": "2026-03-31",
+      "status": "pending",
+      "risk_level": "MEDIUM",
+      "flagged_at": "2026-02-17T08:45:00Z",
+      "flags": [
+        {
+          "text": "Refurbished item",
+          "severity": "default"
+        },
+        {
+          "text": "High volume",
+          "severity": "default"
+        }
+      ],
+      "flag_notes": "Automatic flag: Refurbished electronics require warranty documentation and quality assurance certification."
+    },
+    {
+      "id": "flag-004",
+      "sku": "TOYS-2024-456",
+      "title": "LEGO Star Wars Ultimate Collector's Millennium Falcon",
+      "description": "Brand new sealed LEGO set. Overstock from holiday season. Factory sealed with all pieces included. Perfect for collectors or builders. Limited availability.",
+      "category": "Toys & Games",
+      "category_id": "cat-toys-001",
+      "condition": "Overstock",
+      "location": "Warehouse C - Section 2, Dallas TX",
+      "original_price": 849.99,
+      "current_price": 399.99,
+      "minimum_price": 379.99,
+      "quantity": 15,
+      "retailer_id": "ret-004",
+      "retailer_name": "Toy Warehouse Direct",
+      "retailer_status": "Verified Partner",
+      "deal_url": "https://toywarehouse.example.com/lego-millennium-falcon",
+      "image_url": "https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=800",
+      "start_date": "2026-02-17",
+      "end_date": "2026-03-15",
+      "status": "pending",
+      "risk_level": "MEDIUM",
+      "flagged_at": "2026-02-17T07:20:00Z",
+      "flags": [
+        {
+          "text": "Discount >50%",
+          "severity": "high"
+        },
+        {
+          "text": "Collectible item",
+          "severity": "default"
+        }
+      ],
+      "flag_notes": "Automatic flag: High-value collectible with steep discount. Verify sealed packaging and authenticity."
+    },
+    {
+      "id": "flag-005",
+      "sku": "SPRT-2024-678",
+      "title": "Peloton Bike+ with Accessories Bundle",
+      "description": "Like-new Peloton Bike+ with accessories. Customer return with minimal use (less than 10 rides). Includes cycling shoes, weights, and mat. Full warranty transferable. Subscription not included.",
+      "category": "Sports & Fitness",
+      "category_id": "cat-sports-001",
+      "condition": "Returned",
+      "location": "Warehouse B - Section 5, Seattle WA",
+      "original_price": 2495.00,
+      "current_price": 1247.50,
+      "minimum_price": 1199.00,
+      "quantity": 8,
+      "retailer_id": "ret-005",
+      "retailer_name": "Fitness Gear Outlet",
+      "retailer_status": "Verified Partner",
+      "deal_url": "https://fitnessgear.example.com/peloton-bike-plus",
+      "image_url": "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800",
+      "start_date": "2026-02-16",
+      "end_date": "2026-03-30",
+      "status": "pending",
+      "risk_level": "MEDIUM",
+      "flagged_at": "2026-02-16T18:30:00Z",
+      "flags": [
+        {
+          "text": "High-value item",
+          "severity": "default"
+        },
+        {
+          "text": "Subscription required",
+          "severity": "default"
+        }
+      ],
+      "flag_notes": "Automatic flag: High-value fitness equipment. Verify condition report and ensure subscription terms are clearly disclosed."
+    },
+    {
+      "id": "flag-006",
+      "sku": "ELEC-2024-789",
+      "title": "Sony PlayStation 5 Console - Digital Edition",
+      "description": "Brand new sealed PS5 Digital Edition. Overstock from retail partnership. Factory sealed with full manufacturer warranty. Includes controller and all cables. Ready to ship.",
+      "category": "Electronics",
+      "category_id": "cat-electronics-001",
+      "condition": "Overstock",
+      "location": "Warehouse A - Section 1, Miami FL",
+      "original_price": 499.99,
+      "current_price": 249.99,
+      "minimum_price": 229.99,
+      "quantity": 200,
+      "retailer_id": "ret-006",
+      "retailer_name": "GameStop Liquidation",
+      "retailer_status": "Verified Partner",
+      "deal_url": "https://gamestop-liquidation.example.com/ps5-digital",
+      "image_url": "https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=800",
+      "start_date": "2026-02-16",
+      "end_date": "2026-03-16",
+      "status": "pending",
+      "risk_level": "HIGH",
+      "flagged_at": "2026-02-16T16:00:00Z",
+      "flags": [
+        {
+          "text": "Discount >50%",
+          "severity": "high"
+        },
+        {
+          "text": "Very high quantity",
+          "severity": "high"
+        },
+        {
+          "text": "High demand item",
+          "severity": "default"
+        }
+      ],
+      "flag_notes": "Automatic flag: Extremely high quantity of in-demand gaming console at 50% off. Verify authorized distribution and source documentation. Potential gray market concern."
+    },
+    {
+      "id": "flag-007",
+      "sku": "BEAU-2024-321",
+      "title": "La Mer Crème de la Mer Moisturizing Cream 2oz",
+      "description": "Authentic La Mer moisturizing cream. New sealed in original packaging. Overstock from authorized retailer. Batch numbers verifiable. Expiration date 2027. Includes authenticity seal.",
+      "category": "Beauty & Personal Care",
+      "category_id": "cat-beauty-001",
+      "condition": "Overstock",
+      "location": "Warehouse C - Section 4, Boston MA",
+      "original_price": 385.00,
+      "current_price": 149.99,
+      "minimum_price": 139.99,
+      "quantity": 75,
+      "retailer_id": "ret-007",
+      "retailer_name": "Beauty Bargains LLC",
+      "retailer_status": "New Partner",
+      "deal_url": "https://beautybargains.example.com/la-mer-cream",
+      "image_url": "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=800",
+      "start_date": "2026-02-16",
+      "end_date": "2026-12-31",
+      "status": "pending",
+      "risk_level": "HIGH",
+      "flagged_at": "2026-02-16T14:15:00Z",
+      "flags": [
+        {
+          "text": "Counterfeit risk",
+          "severity": "high"
+        },
+        {
+          "text": "Luxury cosmetics",
+          "severity": "high"
+        },
+        {
+          "text": "New retailer",
+          "severity": "default"
+        }
+      ],
+      "flag_notes": "Automatic flag: Luxury beauty product from new retailer. High counterfeit risk category. Requires batch number verification and authorized retailer documentation."
+    },
+    {
+      "id": "flag-008",
+      "sku": "JWEL-2024-555",
+      "title": "14K Gold Diamond Tennis Bracelet 2.5ct",
+      "description": "Certified 14K white gold tennis bracelet with 2.5 carat total weight diamonds. GIA certified stones. Includes appraisal certificate and insurance documentation. New with original packaging.",
+      "category": "Jewelry & Watches",
+      "category_id": "cat-jewelry-001",
+      "condition": "Overstock",
+      "location": "Secure Vault - Section A, Las Vegas NV",
+      "original_price": 4999.00,
+      "current_price": 1999.00,
+      "minimum_price": 1899.00,
+      "quantity": 5,
+      "retailer_id": "ret-008",
+      "retailer_name": "Diamond Liquidators",
+      "retailer_status": "New Partner",
+      "deal_url": "https://diamondliquidators.example.com/tennis-bracelet",
+      "image_url": "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800",
+      "start_date": "2026-02-16",
+      "end_date": "2026-04-16",
+      "status": "pending",
+      "risk_level": "HIGH",
+      "flagged_at": "2026-02-16T12:00:00Z",
+      "flags": [
+        {
+          "text": "High-value jewelry",
+          "severity": "high"
+        },
+        {
+          "text": "Authentication required",
+          "severity": "high"
+        },
+        {
+          "text": "New retailer",
+          "severity": "default"
+        }
+      ],
+      "flag_notes": "Automatic flag: High-value jewelry item. Requires GIA/AGS certification, appraisal documentation, and insurance verification."
+    },
+    {
+      "id": "flag-009",
+      "sku": "BOOK-2024-111",
+      "title": "Rare First Edition Book Collection - Signed",
+      "description": "Rare first edition books with author signatures. Excellent condition with minimal wear. Includes certificate of authenticity from reputable authenticator. Stored in climate-controlled environment.",
+      "category": "Books & Media",
+      "category_id": "cat-books-001",
+      "condition": "Returned",
+      "location": "Climate Controlled - Section B, Portland OR",
+      "original_price": 1500.00,
+      "current_price": 599.00,
+      "minimum_price": 549.00,
+      "quantity": 3,
+      "retailer_id": "ret-009",
+      "retailer_name": "Rare Books Emporium",
+      "retailer_status": "Verified Partner",
+      "deal_url": "https://rarebooks.example.com/first-edition-collection",
+      "image_url": "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800",
+      "start_date": "2026-02-16",
+      "end_date": "2026-05-16",
+      "status": "pending",
+      "risk_level": "MEDIUM",
+      "flagged_at": "2026-02-16T10:30:00Z",
+      "flags": [
+        {
+          "text": "Collectible item",
+          "severity": "default"
+        },
+        {
+          "text": "Authentication needed",
+          "severity": "default"
+        }
+      ],
+      "flag_notes": "Automatic flag: Rare collectible books. Verify authenticity of signatures and edition details with certificate of authenticity."
+    },
+    {
+      "id": "flag-010",
+      "sku": "AUTO-2024-999",
+      "title": "Michelin Pilot Sport 4S Tire Set (4 tires) 245/40R18",
+      "description": "Brand new Michelin Pilot Sport 4S tires. Set of 4 tires. Overstock from dealership. DOT date code 2025. Stored indoors in climate-controlled warehouse. Full manufacturer warranty.",
+      "category": "Automotive",
+      "category_id": "cat-automotive-001",
+      "condition": "Overstock",
+      "location": "Warehouse D - Outdoor, Phoenix AZ",
+      "original_price": 1200.00,
+      "current_price": 499.00,
+      "minimum_price": 449.00,
+      "quantity": 40,
+      "retailer_id": "ret-010",
+      "retailer_name": "Tire Depot Wholesale",
+      "retailer_status": "Verified Partner",
+      "deal_url": "https://tiredepot.example.com/michelin-pilot-sport",
+      "image_url": "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=800",
+      "start_date": "2026-02-16",
+      "end_date": "2026-03-16",
+      "status": "pending",
+      "risk_level": "MEDIUM",
+      "flagged_at": "2026-02-16T09:00:00Z",
+      "flags": [
+        {
+          "text": "Discount >50%",
+          "severity": "high"
+        },
+        {
+          "text": "Safety item",
+          "severity": "default"
+        }
+      ],
+      "flag_notes": "Automatic flag: Safety-critical automotive parts. Verify DOT date codes, storage conditions, and manufacturer warranty validity."
+    }
+  ],
+  "stats": {
+    "awaiting": 10,
+    "clearedToday": 7,
+    "rejected": 3,
+    "avgReviewTime": "2.4h"
+  }
+}

@@ -1,12 +1,13 @@
 /**
  * Dashboard Layout
- * Protected layout that requires admin authentication
+ * Protected layout with UPD design system
  */
 
 import { redirect } from 'next/navigation';
 import { requireRole } from '@/lib/auth';
-import AuthProvider from '@/components/auth/AuthProvider';
-import Sidebar from '@/components/layout/Sidebar';
+import { createClient } from '@/lib/supabase/server';
+import AdminNav from '@/components/layout/AdminNav';
+import AdminSidebar from '@/components/layout/AdminSidebar';
 
 export default async function DashboardLayout({
   children,
@@ -21,22 +22,25 @@ export default async function DashboardLayout({
     redirect('/login');
   }
 
+  // Get pending applications count
+  const supabase = await createClient();
+  const { count: pendingCount } = await supabase
+    .from('retailers')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'pending');
+
   return (
-    <AuthProvider>
-      <div className="min-h-screen bg-gray-50">
-        <Sidebar />
+    <div className="min-h-screen bg-[#f5f2eb]">
+      <AdminNav />
+      
+      <div className="flex min-h-[calc(100vh-56px)]">
+        <AdminSidebar pendingCount={pendingCount || 0} />
         
         {/* Main content */}
-        <div className="lg:pl-64">
-          {/* Mobile header spacer */}
-          <div className="h-14 lg:hidden" />
-          
-          {/* Page content */}
-          <main className="min-h-screen">
-            {children}
-          </main>
-        </div>
+        <main className="flex-1 p-[32px] overflow-auto">
+          {children}
+        </main>
       </div>
-    </AuthProvider>
+    </div>
   );
 }

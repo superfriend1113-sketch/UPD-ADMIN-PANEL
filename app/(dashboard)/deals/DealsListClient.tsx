@@ -11,7 +11,7 @@ import Link from 'next/link';
 import Button from '../../../components/ui/Button';
 import Select from '../../../components/ui/Select';
 import Modal from '../../../components/ui/Modal';
-import Toast from '../../../components/ui/Toast';
+import { showToast } from '../../../components/ui/Toast';
 import { deleteDeal, toggleDealStatus, bulkUpdateDeals } from '../../../lib/actions/deals';
 import type { Deal, Category, Retailer } from '../../../lib/types';
 
@@ -44,9 +44,6 @@ export default function DealsListClient({ initialDeals, categories, retailers }:
     isOpen: false,
     dealId: null,
   });
-  
-  // Toast state
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   
   // Filter deals
   const filteredDeals = useMemo(() => {
@@ -98,10 +95,10 @@ export default function DealsListClient({ initialDeals, categories, retailers }:
     
     if (result.success) {
       setDeals(prev => prev.filter(d => d.id !== id));
-      setToast({ message: result.message, type: 'success' });
+      showToast(result.message, 'success');
       router.refresh();
     } else {
-      setToast({ message: result.message, type: 'error' });
+      showToast(result.message, 'error');
     }
     
     setDeleteModal({ isOpen: false, dealId: null });
@@ -115,10 +112,10 @@ export default function DealsListClient({ initialDeals, categories, retailers }:
       setDeals(prev => prev.map(d =>
         d.id === id ? { ...d, [field]: result.data[field] } : d
       ));
-      setToast({ message: result.message, type: 'success' });
+      showToast(result.message, 'success');
       router.refresh();
     } else {
-      setToast({ message: result.message, type: 'error' });
+      showToast(result.message, 'error');
     }
   };
   
@@ -133,10 +130,10 @@ export default function DealsListClient({ initialDeals, categories, retailers }:
         selectedIds.includes(d.id) ? { ...d, isActive: true } : d
       ));
       setSelectedIds([]);
-      setToast({ message: result.message, type: 'success' });
+      showToast(result.message, 'success');
       router.refresh();
     } else {
-      setToast({ message: result.message, type: 'error' });
+      showToast(result.message, 'error');
     }
   };
   
@@ -151,10 +148,10 @@ export default function DealsListClient({ initialDeals, categories, retailers }:
         selectedIds.includes(d.id) ? { ...d, isActive: false } : d
       ));
       setSelectedIds([]);
-      setToast({ message: result.message, type: 'success' });
+      showToast(result.message, 'success');
       router.refresh();
     } else {
-      setToast({ message: result.message, type: 'error' });
+      showToast(result.message, 'error');
     }
   };
   
@@ -408,15 +405,6 @@ export default function DealsListClient({ initialDeals, categories, retailers }:
         cancelText="Cancel"
         variant="danger"
       />
-      
-      {/* Toast Notification */}
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
     </div>
   );
 }

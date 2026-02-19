@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Button from '../../../components/ui/Button';
 import Modal from '../../../components/ui/Modal';
-import Toast from '../../../components/ui/Toast';
+import { showToast } from '../../../components/ui/Toast';
 import { deleteRetailer } from '../../../lib/actions/retailers';
 import type { Retailer } from '../../../lib/types';
 
@@ -13,16 +13,15 @@ export default function RetailersListClient({ initialRetailers }: { initialRetai
   const router = useRouter();
   const [retailers, setRetailers] = useState(initialRetailers);
   const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; retailerId: string | null; dealCount: number }>({ isOpen: false, retailerId: null, dealCount: 0 });
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   
   const handleDelete = async (id: string) => {
     const result = await deleteRetailer(id);
     if (result.success) {
       setRetailers(prev => prev.filter(r => r.id !== id));
-      setToast({ message: result.message, type: 'success' });
+      showToast(result.message, 'success');
       router.refresh();
     } else {
-      setToast({ message: result.message, type: 'error' });
+      showToast(result.message, 'error');
     }
     setDeleteModal({ isOpen: false, retailerId: null, dealCount: 0 });
   };
@@ -71,7 +70,6 @@ export default function RetailersListClient({ initialRetailers }: { initialRetai
       </div>
       
       <Modal isOpen={deleteModal.isOpen} onClose={() => setDeleteModal({ isOpen: false, retailerId: null, dealCount: 0 })} onConfirm={() => deleteModal.retailerId && handleDelete(deleteModal.retailerId)} title="Delete Retailer" message={deleteModal.dealCount > 0 ? `This retailer has ${deleteModal.dealCount} associated deal(s). Cannot delete.` : 'Are you sure? This action cannot be undone.'} confirmText="Delete" cancelText="Cancel" variant="danger" />
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 }

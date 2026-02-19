@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Button from '../../../components/ui/Button';
 import Modal from '../../../components/ui/Modal';
-import Toast from '../../../components/ui/Toast';
+import { showToast } from '../../../components/ui/Toast';
 import { deleteCategory } from '../../../lib/actions/categories';
 import type { Category } from '../../../lib/types';
 
@@ -25,17 +25,16 @@ export default function CategoriesListClient({ initialCategories }: CategoriesLi
     categoryId: null,
     dealCount: 0,
   });
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   
   const handleDelete = async (id: string) => {
     const result = await deleteCategory(id);
     
     if (result.success) {
       setCategories(prev => prev.filter(c => c.id !== id));
-      setToast({ message: result.message, type: 'success' });
+      showToast(result.message, 'success');
       router.refresh();
     } else {
-      setToast({ message: result.message, type: 'error' });
+      showToast(result.message, 'error');
     }
     
     setDeleteModal({ isOpen: false, categoryId: null, dealCount: 0 });
@@ -137,14 +136,6 @@ export default function CategoriesListClient({ initialCategories }: CategoriesLi
         cancelText="Cancel"
         variant="danger"
       />
-      
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
     </div>
   );
 }

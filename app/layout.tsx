@@ -1,15 +1,24 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Bebas_Neue, DM_Sans, DM_Mono } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/components/auth/AuthProvider";
+import Toast from "@/components/ui/Toast";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const bebasNeue = Bebas_Neue({
+  weight: '400',
+  variable: "--font-display",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const dmSans = DM_Sans({
+  weight: ['300', '400', '500', '600'],
+  variable: "--font-body",
+  subsets: ["latin"],
+});
+
+const dmMono = DM_Mono({
+  weight: ['400', '500'],
+  variable: "--font-mono",
   subsets: ["latin"],
 });
 
@@ -29,11 +38,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${bebasNeue.variable} ${dmSans.variable} ${dmMono.variable} antialiased`}
       >
         <AuthProvider>
           {children}
         </AuthProvider>
+        <Toast />
       </body>
     </html>
   );

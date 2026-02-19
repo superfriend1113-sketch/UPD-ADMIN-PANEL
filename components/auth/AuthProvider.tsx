@@ -35,7 +35,22 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      // Ignore refresh token errors - just treat as no session
+      if (error && error.message?.includes('refresh_token_not_found')) {
+        console.log('No valid session found, user needs to login');
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+      
+      if (error) {
+        console.error('Session error:', error);
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+      
       // Check if user has retailer role
       const userRole = session?.user?.user_metadata?.role;
       if (session && userRole && userRole !== 'retailer') {
@@ -46,6 +61,10 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       } else {
         setUser(session?.user ?? null);
       }
+      setLoading(false);
+    }).catch((err) => {
+      console.error('Unexpected auth error:', err);
+      setUser(null);
       setLoading(false);
     });
 

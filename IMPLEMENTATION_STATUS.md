@@ -1,97 +1,152 @@
 # Admin Panel Implementation Status
 
-## Completed Tasks ✅
+## UPD Design System Implementation ✅
 
-### Task 1-7: Infrastructure & Deal Management
-- ✅ Project setup with TypeScript, Tailwind CSS
-- ✅ Firebase Admin SDK and Client SDK configuration
-- ✅ Validation utilities (URL, slug, price, date, uniqueness checks)
-- ✅ Authentication system (login, session management, protected routes)
-- ✅ UI components (Button, Input, Select, Toast, Modal, LoadingSpinner)
-- ✅ Deal Server Actions (create, update, delete, toggle status, bulk operations)
-- ✅ Deal UI Components (DealForm, deals list with filters, create/edit pages)
+### Phase 1: Foundation (COMPLETED)
+- ✅ Updated `app/globals.css` with complete UPD CSS variables using Tailwind v4 syntax
+- ✅ Fixed Tailwind v4 configuration with `@theme` block using direct color values
+- ✅ Added Google Fonts (Bebas Neue, DM Sans, DM Mono) to root layout
+- ✅ Created 5 new UI components: StatusPill, StatCard, Button, Chip, RiskFlag
+- ✅ Created 2 layout components: AdminNav, AdminSidebar (pixel-perfect match to HTML reference)
+- ✅ Updated dashboard layout to use new nav and sidebar
 
-### Task 8-9: Deal Management Testing
-- ✅ All deal CRUD operations working
-- ✅ Filtering by category, retailer, status, expiration
-- ✅ Bulk activate/deactivate
-- ✅ Delete with confirmation
-- ✅ Status toggles (active/featured)
+### Phase 2: Pending Applications (COMPLETED)
+- ✅ Created complete Pending Applications page with pixel-perfect UPD styling
+- ✅ Created ApplicationDetailPanel component with backdrop overlay
+- ✅ Created API routes for approve/reject actions with internal notes support
+- ✅ Created `lib/supabase/server.ts` for server-side Supabase client
+- ✅ Installed `@supabase/ssr` package
+- ✅ Fixed email fetching from `user_profiles` table (linked to Supabase auth)
+- ✅ Created database migration for `approval_notes` column
+- ✅ Updated approve/reject API routes to accept and store notes
+- ✅ Updated ApplicationDetailPanel to require notes for rejection
 
-### Task 10: Category Server Actions
-- ✅ Category CRUD operations
-- ✅ Slug uniqueness validation
-- ✅ Deal count checking before deletion
-- ✅ Order management
+### Phase 3: Approved & Rejected Retailers (COMPLETED)
+- ✅ Created `/approved` page with ApprovedRetailersClient component
+- ✅ Created `/rejected` page
+- ✅ Added detail panel to approved retailers page with clickable rows
+- ✅ Updated Suspend button styling to match HTML reference
+- ✅ Updated close button in approved retailers detail panel
 
-### Task 16.2: Navigation
-- ✅ Responsive sidebar navigation
-- ✅ Mobile hamburger menu
-- ✅ Active page highlighting
-- ✅ Logout functionality
+### Phase 4: Flagged Inventory (COMPLETED)
+- ✅ Created Flagged Inventory page structure (`/inventory`)
+- ✅ Created FlaggedInventoryClient component with stats, table, and detail panel
+- ✅ Created FlaggedItemDetailPanel component with risk assessment
+- ✅ Updated StatusPill component to support custom labels
 
-## In Progress 🚧
+### Phase 5: Toast Notification System (COMPLETED)
+- ✅ Created Toast component with UPD design system styling
+- ✅ Added toast animation keyframes to `app/globals.css`
+- ✅ Integrated Toast component into root layout (`app/layout.tsx`)
+- ✅ Updated PendingApplicationsClient to use showToast
+- ✅ Updated ApprovedRetailersClient to use showToast
+- ✅ Updated FlaggedInventoryClient to use showToast
+- ✅ Updated ApprovalActions component to use showToast
+- ✅ Updated ApplicationDetailPanel to use showToast
+- ✅ Updated FlaggedItemDetailPanel to use showToast
+- ✅ Removed all alert() calls and replaced with toast notifications
 
-### Task 11: Category UI Components
-- ✅ CategoryForm component created
-- ⏳ Categories list page
-- ⏳ Category create page
-- ⏳ Category edit page
+### Phase 6: Additional Pages (COMPLETED)
+- ✅ Updated login page with UPD design system using scoped CSS
+- ✅ Fixed AuthProvider to handle refresh token errors gracefully
+- ✅ Updated AdminSidebar with duration-150 transition
+- ✅ Updated root dashboard page to redirect directly to `/pending`
+- ✅ Fixed close button styling (removed border, added hover effects)
 
-## Remaining Tasks 📋
+## Toast Notification Features
 
-### Task 12: Retailer Server Actions
-- Create retailer CRUD operations
-- Slug uniqueness validation
-- Deal count checking
+### Implementation Details
+- **Position**: Fixed at bottom-right (28px from edges)
+- **Styling**: Dark background (#0d0d0d) with white text
+- **Border**: 4px left border color-coded by type
+  - Success: Green (#1e8a52)
+  - Error: Red (#c8401a)
+  - Info: Blue (#1a6bc8)
+- **Animation**: Slide up from bottom with fade-in (0.3s)
+- **Auto-dismiss**: 4 seconds
+- **Max width**: 320px
+- **Z-index**: 999
 
-### Task 13: Retailer UI Components
-- RetailerForm component
-- Retailers list page
-- Retailer create/edit pages
+### Usage Locations
+1. **Pending Applications**
+   - Success: "Application approved successfully"
+   - Info: "Application rejected"
+   - Error: Validation and API errors
 
-### Task 15: Dashboard
-- Metrics calculation (total deals, active, expired, categories, retailers)
-- MetricsCard component
-- RecentDeals component
-- ExpiringDeals component
+2. **Approved Retailers**
+   - Success: "Retailer suspended successfully"
+   - Error: API errors
 
-### Task 16: Polish
-- Responsive design verification
-- Toast notification system integration
-- Loading states optimization
+3. **Flagged Inventory**
+   - Success: "Item cleared and moved to active"
+   - Info: "Item rejected due to policy violation"
+   - Error: API errors
 
-## Key Files Created
+4. **Detail Panels**
+   - Error: "Please provide a reason for rejection in the internal notes"
 
-### Server Actions
-- `lib/actions/deals.ts` - Deal CRUD operations
-- `lib/actions/categories.ts` - Category CRUD operations
+## Key Files
 
 ### UI Components
-- `components/forms/DealForm.tsx` - Deal create/edit form
-- `components/forms/CategoryForm.tsx` - Category create/edit form
-- `components/layout/Sidebar.tsx` - Navigation sidebar
-- `components/ui/` - Reusable UI components
+- `components/ui/Toast.tsx` - Toast notification system
+- `components/ui/StatusPill.tsx` - Status badges with counts
+- `components/ui/StatCard.tsx` - Metric cards
+- `components/ui/Button.tsx` - UPD styled buttons
+- `components/ui/Chip.tsx` - Small labels
+- `components/ui/RiskFlag.tsx` - Risk indicators
+
+### Layout Components
+- `components/layout/AdminNav.tsx` - Top navigation bar
+- `components/layout/AdminSidebar.tsx` - Side navigation
+
+### Dashboard Components
+- `components/dashboard/ApplicationDetailPanel.tsx` - Pending application review panel
+- `components/dashboard/FlaggedItemDetailPanel.tsx` - Flagged item review panel
+- `components/dashboard/ApprovalActions.tsx` - Approve/Reject buttons
+- `components/dashboard/MetricsCard.tsx` - Dashboard metrics
 
 ### Pages
-- `app/(dashboard)/deals/page.tsx` - Deals list
-- `app/(dashboard)/deals/new/page.tsx` - Create deal
-- `app/(dashboard)/deals/[id]/edit/page.tsx` - Edit deal
+- `app/(dashboard)/pending/page.tsx` - Pending applications (server)
+- `app/(dashboard)/pending/PendingApplicationsClient.tsx` - Pending applications (client)
+- `app/(dashboard)/approved/page.tsx` - Approved retailers (server)
+- `app/(dashboard)/approved/ApprovedRetailersClient.tsx` - Approved retailers (client)
+- `app/(dashboard)/rejected/page.tsx` - Rejected applications
+- `app/(dashboard)/inventory/page.tsx` - Flagged inventory (server)
+- `app/(dashboard)/inventory/FlaggedInventoryClient.tsx` - Flagged inventory (client)
+- `app/(auth)/login/page.tsx` - Login page with UPD styling
 
-### Utilities
-- `lib/utils.ts` - Client-safe utilities (calculations, slug generation)
-- `lib/validations.ts` - Server-side validation functions
+### API Routes
+- `app/api/retailers/[id]/approve/route.ts` - Approve retailer with notes
+- `app/api/retailers/[id]/reject/route.ts` - Reject retailer with reason
 
-## Issues Fixed
-1. ✅ Firestore Timestamp serialization errors
-2. ✅ Hydration mismatch (date formatting)
-3. ✅ Build errors (Firebase Admin SDK in client components)
-4. ✅ Firestore composite index requirements
-5. ✅ Input text visibility
-6. ✅ Undefined values in Firestore documents
+### Database
+- `supabase/migrations/20260218161425_add_approval_notes.sql` - Approval notes migration
+
+### Styling
+- `app/globals.css` - UPD design system variables and toast animations
+- `app/layout.tsx` - Root layout with fonts and Toast component
 
 ## Next Steps
-1. Complete category UI (list, create, edit pages)
-2. Implement retailer management (actions + UI)
-3. Build dashboard with metrics
-4. Final polish and testing
+
+### Backend Implementation
+1. Create database schema for flagged items
+2. Create API routes for clear/reject flagged items
+3. Update FlaggedInventoryClient to fetch real data
+4. Implement suspend retailer functionality
+
+### Additional Pages
+1. Categories management (list, create, edit)
+2. Deals management (list, create, edit)
+3. Retailers management (list, create, edit)
+4. Dashboard with real-time metrics
+
+### Testing
+1. Test toast notifications across all pages
+2. Verify auto-dismiss timing
+3. Test multiple toast stacking
+4. Verify responsive design on mobile
+
+## Design System Reference
+- All styling matches `upd-dashboard.html` and `upd-dashboard (2).html`
+- Pixel-perfect implementation of UPD design system
+- Consistent spacing, colors, typography, and interactions

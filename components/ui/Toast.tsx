@@ -1,56 +1,78 @@
 'use client';
 
 /**
- * Toast Component
- * Temporary notification with auto-dismiss
+ * Toast Notification Component
+ * Global toast notification system matching UPD design
  */
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
-interface ToastProps {
+export type ToastType = 'success' | 'error' | 'info';
+
+interface ToastMessage {
+  id: number;
   message: string;
-  type: 'success' | 'error' | 'info';
-  duration?: number;
-  onClose: () => void;
+  type: ToastType;
 }
 
-export default function Toast({ message, type, duration = 5000, onClose }: ToastProps) {
+let toastCounter = 0;
+let toastListeners: ((toast: ToastMessage) => void)[] = [];
+
+export function showToast(message: string, type: ToastType = 'info') {
+  const toast: ToastMessage = {
+    id: toastCounter++,
+    message,
+    type,
+  };
+  toastListeners.forEach(listener => listener(toast));
+}
+
+export default function Toast() {
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+
   useEffect(() => {
-    const timer = setTimeout(() => {
-      onClose();
-    }, duration);
+    const listener = (toast: ToastMessage) => {
+      setToasts(prev => [...prev, toast]);
+      
+      // Auto-remove after 4 seconds
+      setTimeout(() => {
+        setToasts(prev => prev.filter(t => t.id !== toast.id));
+      }, 4000);
+    };
 
-    return () => clearTimeout(timer);
-  }, [duration, onClose]);
+    toastListeners.push(listener);
 
-  const typeStyles = {
-    success: 'bg-green-50 border-green-200 text-green-800',
-    error: 'bg-red-50 border-red-200 text-red-800',
-    info: 'bg-blue-50 border-blue-200 text-blue-800',
+    return () => {
+      toastListeners = toastListeners.filter(l => l !== listener);
+    };
+  }, []);
+
+  const icons = {
+    success: '✓',
+    error: '✕',
+    info: 'ℹ',
   };
 
-  const iconPaths = {
-    success: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
-    error: 'M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z',
-    info: 'M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z',
+  const borderColors = {
+    success: '#1e8a52',
+    error: '#c8401a',
+    info: '#1a6bc8',
   };
 
   return (
-    <div className={`fixed top-4 right-4 z-50 max-w-md w-full animate-slide-in-right`}>
-      <div className={`flex items-start p-4 border-2 rounded-lg shadow-lg ${typeStyles[type]}`}>
-        <svg className="w-6 h-6 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d={iconPaths[type]} clipRule="evenodd" />
-        </svg>
-        <p className="flex-1 font-medium">{message}</p>
-        <button
-          onClick={onClose}
-          className="ml-3 flex-shrink-0 hover:opacity-70 transition-opacity"
+    <>
+      {toasts.map((toast) => (
+        <div
+          key={toast.id}
+          className="fixed bottom-[28px] right-[28px] bg-[#0d0d0d] text-white px-[20px] py-[13px] rounded-[6px] text-[13.5px] shadow-[0_8px_32px_rgba(13,13,13,0.14)] flex items-center gap-[10px] z-999 max-w-[320px] animate-toast"
+          style={{
+            borderLeft: `4px solid ${borderColors[toast.type]}`,
+          }}
         >
-          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-          </svg>
-        </button>
-      </div>
-    </div>
+          <span className="text-[16px]">{icons[toast.type]}</span>
+          <span>{toast.message}</span>
+        </div>
+      ))}
+    </>
   );
 }
