@@ -192,7 +192,7 @@ export default function LoginPage() {
               UNLIMITED <span className="login-title-accent">PERFECT</span> DEALS
             </h1>
             <p className="login-subtitle">
-              Admin Panel — Sign in to manage your platform
+              Admin Panel  Sign in to manage your platform
             </p>
           </div>
 

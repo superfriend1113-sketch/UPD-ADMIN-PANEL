@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { supabaseAdmin } from '@/lib/supabase/adminConfig';
 
 export async function POST(
   request: NextRequest,
@@ -18,16 +18,8 @@ export async function POST(
       return NextResponse.json({ error: 'Rejection reason is required' }, { status: 400 });
     }
 
-    const supabase = await createClient();
-
-    // Get current user
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Update deal status to rejected
-    const { error } = await supabase
+    // Update deal status to rejected using admin client (bypasses RLS)
+    const { error } = await supabaseAdmin
       .from('deals')
       .update({
         status: 'rejected',

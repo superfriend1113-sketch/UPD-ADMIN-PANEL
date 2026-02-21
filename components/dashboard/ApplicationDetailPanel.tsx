@@ -51,7 +51,7 @@ export default function ApplicationDetailPanel({
   }
   
   if (!application.website_url || application.website_url === 'None provided') {
-    riskFlags.push({ text: 'No website — cannot verify legitimacy', severity: 'high' });
+    riskFlags.push({ text: 'No website  cannot verify legitimacy', severity: 'high' });
   }
   
   const currentYear = new Date().getFullYear();

@@ -255,7 +255,7 @@ export default function PendingApplicationsClient({
                               ))}
                             </div>
                           ) : (
-                            '—'
+                            ''
                           )}
                         </td>
                         <td className="px-[16px] py-[13px] text-[13.5px] align-middle">

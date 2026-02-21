@@ -91,6 +91,83 @@ async function getFlaggedItems() {
   });
 }
 
+async function getRecentlyClearedItems() {
+  const supabase = await createClient();
+  
+  // Get deals approved in the last 24 hours
+  const twentyFourHoursAgo = new Date();
+  twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+  
+  const { data: deals, error } = await supabase
+    .from('deals')
+    .select(`
+      *,
+      categories (
+        id,
+        name,
+        slug
+      ),
+      retailers (
+        id,
+        name,
+        status
+      )
+    `)
+    .eq('status', 'approved')
+    .gte('approved_at', twentyFourHoursAgo.toISOString())
+    .order('approved_at', { ascending: false })
+    .limit(10);
+
+  if (error) {
+    console.error('Error fetching recently cleared items:', error);
+    return [];
+  }
+
+  // For each deal, fetch the admin user info if approved_by exists
+  const dealsWithAdmin = await Promise.all(
+    (deals || []).map(async (deal) => {
+      let adminEmail = 'Admin';
+      
+      if (deal.approved_by) {
+        const { data: adminUser } = await supabase
+          .from('user_profiles')
+          .select('email, full_name')
+          .eq('id', deal.approved_by)
+          .single();
+        
+        if (adminUser) {
+          adminEmail = adminUser.email || adminUser.full_name || 'Admin';
+        }
+      }
+      
+      const discount = deal.original_price && deal.discounted_price 
+        ? Math.round((1 - deal.discounted_price / deal.original_price) * 100)
+        : 0;
+      
+      // Determine original flags
+      const flags = [];
+      if (discount > 50) {
+        flags.push('Discount >50%');
+      }
+      if (deal.quantity && deal.quantity > 100) {
+        flags.push('High quantity');
+      }
+      
+      return {
+        id: deal.id,
+        sku: deal.sku || 'N/A',
+        title: deal.title || deal.product_name,
+        retailer_name: deal.retailers?.name || 'Unknown',
+        original_flag: flags.join(', ') || 'Standard review',
+        cleared_by: adminEmail,
+        cleared_at: deal.approved_at,
+      };
+    })
+  );
+
+  return dealsWithAdmin;
+}
+
 async function getStats() {
   const supabase = await createClient();
   
@@ -131,6 +208,7 @@ async function getStats() {
 export default async function FlaggedInventoryPage() {
   const items = await getFlaggedItems();
   const stats = await getStats();
+  const recentlyCleared = await getRecentlyClearedItems();
 
-  return <FlaggedInventoryClient items={items} stats={stats} />;
+  return <FlaggedInventoryClient items={items} stats={stats} recentlyCleared={recentlyCleared} />;
 }

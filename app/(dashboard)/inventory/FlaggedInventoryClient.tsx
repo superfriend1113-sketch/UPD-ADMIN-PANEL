@@ -21,6 +21,7 @@ interface FlaggedInventoryClientProps {
     rejected: number;
     avgReviewTime: string;
   };
+  recentlyCleared: any[];
 }
 
 function formatTimeAgo(date: string) {
@@ -42,6 +43,7 @@ function calculateDiscount(original: number, current: number): number {
 export default function FlaggedInventoryClient({
   items,
   stats,
+  recentlyCleared,
 }: FlaggedInventoryClientProps) {
   const router = useRouter();
   const [selectedItem, setSelectedItem] = useState<any>(null);
@@ -301,11 +303,38 @@ export default function FlaggedInventoryClient({
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td colSpan={6} className="px-[16px] py-[40px] text-center text-[#888070] text-[14px]">
-                    No recently cleared items
-                  </td>
-                </tr>
+                {recentlyCleared.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-[16px] py-[40px] text-center text-[#888070] text-[14px]">
+                      No recently cleared items
+                    </td>
+                  </tr>
+                ) : (
+                  recentlyCleared.map((item) => (
+                    <tr key={item.id} className="border-b border-[#d6d0c4] last:border-b-0 hover:bg-[#ede9df] transition-colors">
+                      <td className="px-[16px] py-[13px] text-[13.5px] align-middle">
+                        <span className="font-mono text-[12px]">{item.sku}</span>
+                      </td>
+                      <td className="px-[16px] py-[13px] text-[13.5px] align-middle">
+                        {item.title}
+                      </td>
+                      <td className="px-[16px] py-[13px] text-[13.5px] align-middle">
+                        {item.retailer_name}
+                      </td>
+                      <td className="px-[16px] py-[13px] text-[13.5px] align-middle">
+                        <span className="text-[12px] text-[#888070]">{item.original_flag}</span>
+                      </td>
+                      <td className="px-[16px] py-[13px] text-[13.5px] align-middle">
+                        {item.cleared_by}
+                      </td>
+                      <td className="px-[16px] py-[13px] text-[13.5px] align-middle">
+                        <span className="text-[12px] text-[#1e8a52]">
+                          ✓ {formatTimeAgo(item.cleared_at)}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
